@@ -36,18 +36,6 @@ data class GroupEntity(
 )
 
 /**
- * A member of a group chat - embedded as JSON inside [GroupEntity.membersJson] rather than its
- * own table: rosters are small and always read/written as a whole unit together (a membership
- * change already means rewriting the whole roster + rotating the epoch).
- */
-data class GroupMember(
-    val address: String,
-    val xOnlyPubKeyHex: String,
-    val isAdmin: Boolean,
-    val displayName: String? = null
-)
-
-/**
  * A group chat message - content stored as raw gcomm ciphertext (hex), NOT plaintext, decrypted
  * on read using the group's Keystore-held root key (see GroupRepository). Same posture as
  * [MessageEntity.encryptedPayload] - compromising this database alone doesn't reveal content.

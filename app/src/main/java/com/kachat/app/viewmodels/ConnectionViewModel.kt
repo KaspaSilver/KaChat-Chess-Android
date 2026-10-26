@@ -56,10 +56,6 @@ internal fun dotColorHexFor(status: ConnectionStatus): Long = when (status) {
     ConnectionStatus.DISCONNECTED -> 0xFFFF3B30
 }
 
-/** Connection dot color — delegates to [deriveConnectionStatus] so it can never diverge from the status text. */
-internal fun deriveDotColorHex(activeNodes: List<NodeInfo>, disconnectedGraceElapsed: Boolean = true): Long =
-    dotColorHexFor(deriveConnectionStatus(activeNodes, disconnectedGraceElapsed))
-
 data class NodeInfo(
     val ip: String,
     val type: String, // Seed, Manual

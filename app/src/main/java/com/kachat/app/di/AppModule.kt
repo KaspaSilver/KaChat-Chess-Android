@@ -19,7 +19,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.kachat.app.services.ChangeNowApi
 import com.kachat.app.services.CoinGeckoApi
 import com.kachat.app.services.KaspaRestApi
 import com.kachat.app.services.KasiaIndexerApi
@@ -197,27 +196,5 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(CoinGeckoApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideChangeNowApi(okHttpClient: OkHttpClient): ChangeNowApi {
-        // The API key is per-request-header auth, not a query param, so it's added here at the
-        // client level (a derived client, so ChangeNOW calls still share the base timeouts/logging
-        // configured on the shared client) rather than threaded through every ChangeNowApi method.
-        val authedClient = okHttpClient.newBuilder()
-            .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .addHeader("x-changenow-api-key", BuildConfig.CHANGENOW_API_KEY)
-                    .build()
-                chain.proceed(request)
-            }
-            .build()
-        return Retrofit.Builder()
-            .baseUrl("https://api.changenow.io/")
-            .client(authedClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ChangeNowApi::class.java)
     }
 }

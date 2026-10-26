@@ -51,10 +51,8 @@ class WalletViewModel @Inject constructor(
      *  `getUtxos`) - it has no Cold-Storage-account/kpub state, so it's just as valid a data
      *  source here as it is for Cold Storage's own tx-history screen. */
     private val coldStorageAddressDiscovery: ColdStorageAddressDiscovery,
-    private val pushRegistrationManager: com.kachat.app.services.PushRegistrationManager,
     private val onboardingGate: com.kachat.app.services.OnboardingGate,
     private val chatRepository: com.kachat.app.repository.ChatRepository,
-    private val nextcloudService: com.kachat.app.services.NextcloudService,
     /** The .k and .kaspa name services (Your Domains tabs, name resolution) - iOS NameServicesClient. */
     val nameServices: com.kachat.app.services.NameServicesClient,
     /** .kachat owners count toward the "Contains domain" tag (iOS 881ada6). Lazy, and only asked
@@ -1164,9 +1162,6 @@ class WalletViewModel @Inject constructor(
                 lastSeenAddress = address
                 if (address != null) {
                     settings.setActiveAddress(address)
-                    // Register (or re-register on account switch) this device's FCM token with
-                    // the indexer so native push works while backgrounded. No-ops without FCM.
-                    pushRegistrationManager.registerAsync()
                 }
             }
         }
@@ -1220,19 +1215,10 @@ class WalletViewModel @Inject constructor(
         }
         if (walletManager.hasWallet()) {
             _isLoggedIn.value = true
-            // Logging back into the SAME account re-registers push explicitly — logout()
-            // unregistered, and activeAddressFlow won't re-emit for an unchanged address, so the
-            // observer inside PushRegistrationManager can't see this transition on its own.
-            // (Switching accounts is covered either way; the register is fingerprint-deduped.)
-            pushRegistrationManager.registerAsync()
         }
     }
 
     fun logout() {
-        // Mirrors iOS's WalletManager.logout(): a logged-out device must stop receiving pushes
-        // for the account, even though the wallet data stays on the device. Signing material is
-        // captured synchronously, and the wallet isn't being destroyed here anyway.
-        pushRegistrationManager.unregisterAsync()
         _isLoggedIn.value = false
     }
 
@@ -1309,42 +1295,13 @@ class WalletViewModel @Inject constructor(
      * "next" would leave the user unsure which account they're now using, right after a
      * destructive action. An explicit re-login/account tap is clearer.
      */
-    /** Whether the "Delete and Remove Nextcloud Backup" choice should be offered at all. */
-    fun nextcloudConnected(): Boolean = nextcloudService.isConnected
-
-    /**
-     * [removeRemoteBackup] also deletes the encrypted archive from the person's Nextcloud. Off by
-     * default and only ever true because they picked the choice that says so: the archive is what
-     * carries their history to their other devices, so deleting this account's copy of the app must
-     * not quietly take it (iOS 78152d3).
-     */
-    fun deleteWallet(address: String, removeRemoteBackup: Boolean = false) {
-        // Unregister push BEFORE the keys are destroyed (iOS's deleteWallet does the same) — a
-        // signed unregister needs the wallet's key, and unregisterAsync snapshots it
-        // synchronously right here. Only when deleting the account push is registered FOR:
-        // deleting some other saved account from the Welcome list must not kill this one's push.
-        if (address == walletManager.getActiveAccount()?.address) {
-            pushRegistrationManager.unregisterAsync()
-        }
+    fun deleteWallet(address: String) {
         // Everything this account held locally goes with it. wipeAllLocalDataForAddress has been
         // here the whole time and nothing called it on deletion, so a deleted account's messages,
         // contacts, reactions, edits, groups and sync cursors all stayed on the device - and came
         // back the moment the account was re-imported (iOS 78152d3). Runs before the record is
         // removed so the address is still resolvable, and on IO because it is a pile of DELETEs.
         viewModelScope.launch(Dispatchers.IO) {
-            // The archive first, while the Nextcloud credentials are still around to authenticate
-            // it. A failure is reported rather than swallowed - the person asked for the backup to
-            // go, and it staying is something they need to know so they can remove it themselves.
-            if (removeRemoteBackup) {
-                runCatching { nextcloudService.deleteRemoteBackup() }
-                    .onFailure { failure ->
-                        android.util.Log.w("WalletViewModel", "Nextcloud archive delete failed", failure)
-                        _deleteAccountError.value = UserFacingError.message(
-                            failure,
-                            "The account was deleted but its Nextcloud backup could not be removed.",
-                        )
-                    }
-            }
             // On both networks: the same key is the same account as kaspa: and kaspatest:, and
             // each kept its own chats (iOS 741c005).
             for (variant in com.kachat.app.util.KaspaNetwork.accountAddressVariants(address)) {
@@ -1585,7 +1542,6 @@ class WalletViewModel @Inject constructor(
                 _accounts.value = walletManager.getAllAccounts()
                 refreshBalance()
                 refreshSpendingAddress()
-                pushRegistrationManager.registerAsync()
                 resetChattingAddressScan()
                 onResult(true)
             } catch (e: Exception) {
@@ -2215,6 +2171,10 @@ class WalletViewModel @Inject constructor(
     /** Route strings, in the user's chosen bottom-tab order — see AppSettingsRepository.tabOrder. */
     val tabOrder: StateFlow<List<String>> = settings.tabOrder
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), AppSettingsRepository.DEFAULT_TAB_ORDER)
+
+    fun updateKaspaExplorer(explorer: com.kachat.app.models.KaspaExplorer) {
+        viewModelScope.launch { settings.setKaspaExplorer(explorer) }
+    }
 
     val kaspaExplorer: StateFlow<com.kachat.app.models.KaspaExplorer> = settings.kaspaExplorer
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), com.kachat.app.models.KaspaExplorer.default)

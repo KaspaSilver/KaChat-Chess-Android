@@ -59,35 +59,15 @@ class ChatRepository @Inject constructor(
     private val walletManager: WalletManager,
     private val settingsRepository: AppSettingsRepository,
     private val notificationHelper: NotificationHelper,
-    // Consulted at the notification-posting sites below AND by the poll-loop gate in init:
-    // while native FCM push is active AND the app is backgrounded, the server is the
-    // notification source for 1:1 handshakes/messages/payments (the iOS repo's PUSH_EXTENSIONS.md §4) and the
-    // 2s sync loop pauses entirely (see the gate in init). While the app is foregrounded the
-    // local poll posts its own banners (only the open thread is suppressed, inside
-    // NotificationHelper) — txId dedupe there collapses a racing push for the same message.
-    private val pushState: PushState,
     // Drives the poll loop's metered cadence tiers (see the loop in init) — cellular polls
     // slower than WiFi, in-chat and idle alike.
     private val meteredNetwork: MeteredNetwork,
-    // Lazy because NextcloudSyncService depends (via the export service) on ChatRepository —
-    // a direct circular constructor dependency Dagger can't resolve. Lazy<T> defers
-    // instantiation past construction time, breaking the cycle while still letting this class
-    // signal message activity into it (the continuous Nextcloud sync debounce).
-    private val nextcloudSyncServiceLazy: dagger.Lazy<com.kachat.app.services.NextcloudSyncService>,
-    // Lazy for the same reason: CallService sends its envelopes through WalletService, which
-    // depends on this repository. Incoming call envelopes are handed to it from the ingest.
-    private val callServiceLazy: dagger.Lazy<com.kachat.app.services.CallService>,
     // Lazy: ContactNoteService sends through WalletService, which itself depends on this.
     private val contactNotesLazy: dagger.Lazy<com.kachat.app.services.ContactNoteService>,
     private val onboardingGate: com.kachat.app.services.OnboardingGate,
     private val peerAliasStore: com.kachat.app.services.PeerAliasStore,
     /** Message Requests state - accepted, private, blocked (NO_HANDSHAKE_MESSAGING.md). */
     private val chatRequestStore: ChatRequestStore,
-    /** 1:1 messages a push told us about, until they are stored (iOS 60c9fd0). */
-    private val pushedMessageQueue: com.kachat.app.services.PushedMessageQueue,
-    /** Cold Storage (KasSigner) watch accounts - their addresses are ours to a payment_notice
-     *  (IOS-083, [ownAddressesForNotices]). */
-    private val coldStorageManager: com.kachat.app.services.ColdStorageManager,
     /** Txids of the payment bubbles received payment_notices filed - only the notice's own chain
      *  check may confirm, move or remove them (IOS-083 run 11, [fileNoticeBubble]). */
     private val noticeBubbleStore: com.kachat.app.services.NoticeBubbleStore,
@@ -129,17 +109,6 @@ class ChatRepository @Inject constructor(
             // retried at the fast cadence forever.
             var consecutiveIndexerFailures = 0
             while (true) {
-                // Pause while backgrounded with healthy push; resume instantly (suspend on the
-                // combined flow, no polling) on foreground or push loss, then sync immediately
-                // so the reopened app's chat list is current without waiting a cycle.
-                if (!notificationHelper.isAppInForeground && pushState.isActive) {
-                    // Payments made while paused are never pushed (a plain KAS payment gets no
-                    // push): the first sync back fetches them from here on (iOS 20155aa).
-                    requestPaymentCatchUp(lookBackMs = 2 * 60 * 1000L)
-                    combine(notificationHelper.appForegroundFlow, pushState.pushActive) { foreground, pushActive ->
-                        foreground || !pushActive
-                    }.first { it }
-                }
                 // Guarded: this loop is the ONLY live 1:1 receive path while the app is open,
                 // and it runs for the whole process lifetime. syncMessages() catches its own
                 // network errors, but one uncaught throw anywhere in it (a DataStore read, a
@@ -894,7 +863,6 @@ class ChatRepository @Inject constructor(
             return
         }
         database.messageDao().insert(message)
-        scheduleAutoBackupIfEnabled()
     }
 
     /** [insertMessage] that never replaces a stored row ([MessageDao.insertIfAbsent]): false when
@@ -905,19 +873,7 @@ class ChatRepository @Inject constructor(
             return false
         }
         if (database.messageDao().insertIfAbsent(message) == -1L) return false
-        scheduleAutoBackupIfEnabled()
         return true
-    }
-
-    /**
-     * Automatic cloud-sync signal — every new message (sent or received, from any insertion
-     * path, since all of them funnel through [insertMessage]) is reported to
-     * [com.kachat.app.services.NextcloudSyncService]. The service owns its own debounce,
-     * per-wallet gating, wallet snapshotting, and WorkManager fallback, and no-ops when no
-     * account is connected or the wallet's automatic-sync toggle is off — so the call is cheap.
-     */
-    private fun scheduleAutoBackupIfEnabled() {
-        nextcloudSyncServiceLazy.get().noteMessageActivity()
     }
 
     /**
@@ -1024,7 +980,6 @@ class ChatRepository @Inject constructor(
             )
         )
         database.messageDao().deleteById(provisional.id, provisional.walletAddress)
-        scheduleAutoBackupIfEnabled()
         Log.i("ChatRepository", "Upgraded provisional ${provisional.id.take(24)} to txId=${imported.id.take(16)} (exact content match)")
     }
 
@@ -1037,7 +992,6 @@ class ChatRepository @Inject constructor(
     suspend fun collapseProvisionalInto(provisional: MessageEntity, imported: MessageEntity) {
         database.messageDao().insert(imported)
         database.messageDao().deleteById(provisional.id, provisional.walletAddress)
-        scheduleAutoBackupIfEnabled()
         Log.i("ChatRepository", "Collapsed sole provisional ${provisional.id.take(24)} into imported txId=${imported.id.take(16)}")
     }
 
@@ -1059,7 +1013,6 @@ class ChatRepository @Inject constructor(
         )
         database.messageDao().insert(merged)
         database.messageDao().deleteById(provisionalId, final.walletAddress)
-        scheduleAutoBackupIfEnabled()
         // Delivered in a chat with no handshake: leave a note a fresh import can find it by.
         if (merged.direction == "sent") contactNotesLazy.get().onMessageDelivered(merged.contactId)
         if (existing != null) {
@@ -1409,8 +1362,6 @@ class ChatRepository @Inject constructor(
             lastInboxSyncAt = nowForInbox
             syncInbox(myAddress, api)
         }
-        // Messages a push told us about that are not stored yet (iOS 60c9fd0).
-        ingestPushedMessages(myAddress, api)
         // Saved-handshake notes: re-create chats that never had a handshake after a fresh
         // import, and write the notes still missing (iOS fe45704). Not on the fast poll tick.
         if (!fromPollLoop) contactNotesLazy.get().syncNotesInBackground()
@@ -1478,111 +1429,6 @@ class ChatRepository @Inject constructor(
             chatRequestStore.update(myAddress) { it.copy(accepted = it.accepted + preexisting) }
         } catch (e: Exception) {
             Log.w("ChatRepository", "Keeping pre-Message-Requests chats failed", e)
-        }
-    }
-
-    // MARK: - Pushed 1:1 messages (iOS 60c9fd0)
-
-    private val pushedIngestMutex = kotlinx.coroutines.sync.Mutex()
-    /** Per queued tx id: how often its sender was fetched for it, and when last (this launch). */
-    private val pushedAttempts = java.util.concurrent.ConcurrentHashMap<String, Pair<Int, Long>>()
-
-    /**
-     * A 1:1 push about [txId] from [sender]: always handed to the ingest - not only when the
-     * banner could not be previewed - and stored now, in the background. A photo, voice or long
-     * message (a payload-less push) otherwise waited for a sync to stumble on it: missing from
-     * the chat list until that chat was opened. Queued first, so a process frozen right after
-     * the push still stores it on its next sync.
-     */
-    fun notePushedMessage(txId: String, sender: String) {
-        val me = runCatching { walletManager.getAddress() }.getOrNull()?.takeIf { it.isNotBlank() } ?: return
-        if (txId.isBlank() || sender.isBlank() || sender.equals(me, ignoreCase = true)) return
-        pushedMessageQueue.add(me, txId, sender)
-        scope.launch {
-            try {
-                ingestPushedMessages(me, networkService.indexerApi.value)
-            } catch (e: Exception) {
-                Log.w("ChatRepository", "Storing a pushed message failed", e)
-            }
-        }
-    }
-
-    /**
-     * Stores the queued pushed messages: each sender's conversation is fetched the normal way
-     * (sender + alias) until the tx is in the database. A sender with no chat yet is looked up in
-     * the inbox (Message Requests); if that does not bring them in, they get a chat anyway - a
-     * pending one, so it lands in Message Requests - once the message is confirmed to be for us.
-     * That contact row is their routing state: every sync and sweep covers them from then on
-     * (iOS 60c9fd0 gives anyone first seen through a push routing state on their first message).
-     * An entry not stored after a few spaced tries (an edit, reaction or pool envelope never
-     * becomes a row of its own) or a day is dropped; the regular sync keeps covering the chat.
-     */
-    suspend fun ingestPushedMessages(
-        myAddress: String = runCatching { walletManager.getAddress() }.getOrDefault(""),
-        api: KasiaIndexerApi? = networkService.indexerApi.value,
-    ) {
-        if (myAddress.isEmpty() || api == null || onboardingGate.isHeld) return
-        if (pushedMessageQueue.entries(myAddress).isEmpty()) return
-        if (!pushedIngestMutex.tryLock()) return
-        try {
-            val now = System.currentTimeMillis()
-            val pending = pushedMessageQueue.entries(myAddress)
-            val done = mutableSetOf<String>()
-            for ((_, entries) in pending.groupBy { it.sender.lowercase() }) {
-                val sender = entries.first().sender
-                val open = entries.filter { entry ->
-                    when {
-                        database.messageDao().exists(entry.txId, myAddress) -> false
-                        now - entry.queuedAt > com.kachat.app.services.PushedMessageQueue.MAX_AGE_MS -> false
-                        (pushedAttempts[entry.txId]?.first ?: 0) >= PUSHED_MAX_ATTEMPTS -> false
-                        else -> true
-                    }
-                }
-                done += entries.filterNot { it in open }.map { it.txId }
-                if (open.isEmpty()) continue
-                // Spaced tries: a sender fetched moments ago is left for the next pass.
-                if (open.all { now - (pushedAttempts[it.txId]?.second ?: 0L) < PUSHED_RETRY_SPACING_MS }) continue
-                if (sender.equals(myAddress, ignoreCase = true) || chatRequestStore.isBlocked(sender) ||
-                    !KaspaAddress.isValid(sender) || !com.kachat.app.util.KaspaNetwork.isOnActiveNetwork(sender)
-                ) {
-                    done += open.map { it.txId }
-                    continue
-                }
-                if (database.contactDao().getContact(sender, myAddress) == null) {
-                    // First contact: the inbox brings in a tagged first message with its history.
-                    syncInbox(myAddress, api)
-                }
-                if (database.contactDao().getContact(sender, myAddress) == null) {
-                    // Not in the inbox (yet): a chat for them anyway, once a queued message is
-                    // confirmed to open with our key - so the sync below, and every sync after
-                    // it, looks for their messages.
-                    val forUs = open.any { decryptChainMessage(it.txId) != null }
-                    if (!forUs) {
-                        open.forEach { pushedAttempts.merge(it.txId, 1 to now) { old, _ -> (old.first + 1) to now } }
-                        continue
-                    }
-                    if (database.contactDao().getContact(sender, myAddress) == null) {
-                        val senderPubKeyHex = runCatching {
-                            KaspaAddress.decode(sender).second.joinToString("") { "%02x".format(it) }
-                        }.getOrNull()
-                        database.contactDao().insert(
-                            ContactEntity(
-                                id = sender, walletAddress = myAddress, alias = null, knsName = null,
-                                publicKeyHex = senderPubKeyHex,
-                                // Not accepted yet: a Message Request, out of the push watch list.
-                                conversationStatus = "pending",
-                            )
-                        )
-                    }
-                }
-                open.forEach { pushedAttempts.merge(it.txId, 1 to now) { old, _ -> (old.first + 1) to now } }
-                syncContextualMessages(myAddress, api, onlyContactIds = setOf(sender))
-                done += open.filter { database.messageDao().exists(it.txId, myAddress) }.map { it.txId }
-            }
-            pushedMessageQueue.remove(myAddress, done)
-            done.forEach { pushedAttempts.remove(it) }
-        } finally {
-            pushedIngestMutex.unlock()
         }
     }
 
@@ -1839,7 +1685,7 @@ class ChatRepository @Inject constructor(
         // The remote push is the only banner source while push is active, foreground or
         // background - see PushState. The sync still lands the handshake; it just no longer
         // announces it. Only a device with no push at all banners from here.
-        if (!backfill && !pushState.isActive && !notifyAsMessageRequest(updatedContact, myAddress, handshake.txId)) {
+        if (!backfill && !notifyAsMessageRequest(updatedContact, myAddress, handshake.txId)) {
             notificationHelper.show(
                 contactId = sender,
                 title = if (newStatus == "pending") "Request to communicate" else "Connected",
@@ -2202,13 +2048,9 @@ class ChatRepository @Inject constructor(
             )
         )
 
-        // Call events (invite / answer / hang-up) ring through the chat itself. They DO stay as
-        // bubbles - the chat shows "Voice call · 4:12" the way a phone's history would - so this
-        // only hands the envelope to CallService and carries on.
+        // Call events (invite / answer / hang-up) stay as bubbles; KaChat Chess has no calls to
+        // hand them to.
         val callEnvelope = if (contact.id != myAddress) com.kachat.app.util.CallCodec.parseOrNull(plaintext) else null
-        callEnvelope?.let { envelope ->
-            callServiceLazy.get().handleIncoming(envelope, contact.id, message.blockTime, isOutgoing = false)
-        }
         // A call from someone calls are off for (or never turned on) is ignored silently: no
         // "Incoming call" banner either (MESSAGING.md "Consent before ringing", iOS 88aa3c1).
         val unwantedCall = callEnvelope != null && com.kachat.app.util.CallCodec.isOpeningCall(callEnvelope) &&
@@ -2227,7 +2069,7 @@ class ChatRepository @Inject constructor(
         // The remote push is the only banner source while push is active, foreground or
         // background - see PushState. Only a device with no push at all banners from here.
         // Nor a banner for one the chat won't show (a hidden placeholder, iOS c130dc1).
-        if (!backfill && !unwantedCall && !pushState.isActive && !MessageEntity.isHiddenPlaceholder(plaintext) &&
+        if (!backfill && !unwantedCall && !MessageEntity.isHiddenPlaceholder(plaintext) &&
             !notifyAsMessageRequest(contact, myAddress, message.txId)
         ) {
             notificationHelper.show(
@@ -2409,17 +2251,6 @@ class ChatRepository @Inject constructor(
             // included (run 10: B's Address #2 topping up A's chatting address is ours too; iOS 566b4ef)
             runCatching { walletManager.allCachedSpendingAddresses() }.getOrDefault(emptyList())
                 .forEach { own.add(it.trim().lowercase()) }
-            val coldAccounts = runCatching { coldStorageManager.getAccounts() }.getOrDefault(emptyList())
-            for (account in coldAccounts) {
-                val rootKey = com.kachat.app.util.KaspaExtendedPublicKey.parse(account.kpub).getOrNull()
-                    ?.let { runCatching { com.kachat.app.util.KaspaExtendedPublicKey.toDeterministicKey(it) }.getOrNull() }
-                    ?: continue
-                for (index in 0..maxOf(account.maxDerivedIndex, 0)) {
-                    runCatching {
-                        com.kachat.app.util.KaspaExtendedPublicKey.deriveChildAddress(rootKey, chain = 0, index = index)
-                    }.getOrNull()?.let { own.add(it.trim().lowercase()) }
-                }
-            }
             own.remove("")
             own
         }
@@ -2485,14 +2316,13 @@ class ChatRepository @Inject constructor(
             )
             if (inserted == -1L) return
         }
-        scheduleAutoBackupIfEnabled()
         Log.i("ChatRepository", "Payment ${txId.take(12)} filed in its chat from a payment_notice ($status)")
         if (isOutgoing) return
 
         // Only a payment newly shown counts: one the payment sync already put in the self-chat
         // rang then. "Received payment" without the claimed amount, the push's wording (IOS-080);
         // the remote push is the only banner source while push is active (see PushState).
-        if (moving == null && !backfill && !pushState.isActive &&
+        if (moving == null && !backfill &&
             !notifyAsMessageRequest(contact, myAddress, noticeTxId)
         ) {
             notificationHelper.show(
@@ -2956,7 +2786,7 @@ class ChatRepository @Inject constructor(
 
         // The remote push is the only banner source while push is active, foreground or
         // background - see PushState. Only a device with no push at all banners from here.
-        if (!backfill && !pushState.isActive) {
+        if (!backfill) {
             notificationHelper.show(
                 contactId = conversationId,
                 title = "Payment received",
@@ -3297,7 +3127,7 @@ class ChatRepository @Inject constructor(
             contactNotesLazy.get().onMessageDelivered(contactAddress)
             return
         }
-        if (!backfill && !pushState.isActive && !notifyAsMessageRequest(contact, myAddress, txId)) {
+        if (!backfill && !notifyAsMessageRequest(contact, myAddress, txId)) {
             notificationHelper.show(
                 contactId = contact.id,
                 title = contact.displayName,
@@ -3766,8 +3596,6 @@ class ChatRepository @Inject constructor(
         private const val CONTACT_SWEEP_MIN_INTERVAL_MS = 5_000L
         /** Tries per pushed message before the ingest leaves it to the regular sync, and the
          *  least time between two of them. */
-        private const val PUSHED_MAX_ATTEMPTS = 6
-        private const val PUSHED_RETRY_SPACING_MS = 10_000L
         /** How often the fast poll tick also asks the inbox for first-contact messages. */
         private const val INBOX_POLL_INTERVAL_MS = 30_000L
         private const val CONTACT_SWEEP_CAP = 40

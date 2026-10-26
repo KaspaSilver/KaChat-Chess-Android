@@ -158,19 +158,6 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <!-- WorkManager's default auto-init is disabled — KaChatApplication implements
-             Configuration.Provider so SyncWorker gets constructed via HiltWorkerFactory
-             (see SyncWorker.kt) instead of a no-arg constructor. -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
-        </provider>
 
         <!-- Lets the chat-history export share a plaintext JSON file from app-private cache via a content:// URI, without granting broad file access. -->
         <provider
@@ -183,33 +170,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- FCM Push Notification Service. Data-only messages are handled here and turned into
-             notifications via NotificationHelper (mirrors iOS's Notification Service Extension).
-             Inactive at runtime until google-services.json is added (see app/build.gradle.kts). -->
-        <!-- Keeps a live call's microphone and camera usable in the background (CallService). -->
-        <service
-            android:name=".services.CallForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="microphone|camera" />
-
-        <!-- Declining from the ringing notification, which needs no UI (IncomingCallNotifier). -->
-        <receiver
-            android:name=".services.CallActionReceiver"
-            android:exported="false" />
-
-        <service
-            android:name=".services.KaChatFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Default notification channel for FCM (used if a message arrives without an explicit
-             channel). Points at the app's primary messages channel. -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="kachat_messages_sound_vibrate" />
 
         <!-- Required for AppCompatDelegate.setApplicationLocales() to survive a cold app
              restart on API <33 (the Settings > Language row uses this API) - without this

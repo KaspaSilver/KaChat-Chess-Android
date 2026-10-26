@@ -485,12 +485,7 @@ class KachatNamesService @Inject constructor(
          */
         fun fundingUtxos(utxos: List<Utxo>, me: ByteArray, virtualDaaScore: Long): List<Utxo> {
             val mine = Codec.p2pkScript(me)
-            val reserved = com.kachat.app.services.KaPostsScheduledStore.reservedOutpoints
-                .mapTo(HashSet()) { it.lowercase() }
             return utxos.filter { u ->
-                if (reserved.isNotEmpty() && "${KachatNames.hex(u.outpoint.txid)}:${u.outpoint.index}".lowercase() in reserved) {
-                    return@filter false
-                }
                 // An overflowing or negative DAA score counts as not yet mature (IOS-020).
                 val mature = !u.entry.isCoinbase ||
                     com.kachat.app.util.UtxoMath.isMatureCoinbase(u.entry.blockDaaScore, KaspaWalletEngine.COINBASE_MATURITY, virtualDaaScore)

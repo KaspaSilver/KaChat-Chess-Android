@@ -228,15 +228,14 @@ fun OnboardingScreen(viewModel: WalletViewModel) {
         }
 
         // App Settings (the gear on the accounts screen, matching iOS's gearshape sheet on
-        // OnboardingView): ONLY the app-wide settings tier - Customization/Security/Connection/
-        // Diagnostics - every leaf reusing the exact screens the in-account Settings uses.
+        // OnboardingView): ONLY the app-wide settings tier - Customization/Security/Connection -
+        // every leaf reusing the exact screens the in-account Settings uses.
         composable("app_settings") {
             AppSettingsHubScreen(
                 onBack = { navController.popBackStack() },
                 onOpenCustomization = { navController.navigate("app_settings_customization") },
                 onOpenSecurity = { navController.navigate("app_settings_security") },
                 onOpenConnection = { navController.navigate("app_settings_connection") },
-                onOpenDiagnostics = { navController.navigate("app_settings_diagnostics") }
             )
         }
         composable("app_settings_customization") {
@@ -256,14 +255,8 @@ fun OnboardingScreen(viewModel: WalletViewModel) {
         composable("app_settings_security") {
             AppSecurityScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateToChildMode = { navController.navigate("app_settings_child_mode") },
                 walletViewModel = viewModel
             )
-        }
-        composable("app_settings_child_mode") {
-            // Fully functional with no account active - the password record and enabled flag
-            // are device-global (ChildModeService's EncryptedSharedPreferences + DataStore).
-            ChildModeSettingsScreen(onBack = { navController.popBackStack() })
         }
         // The same Connection page as in-account Settings (iOS ConnectionHubPage): Connection
         // Settings, the Testnet switch, Kaspa Explorer.
@@ -279,9 +272,6 @@ fun OnboardingScreen(viewModel: WalletViewModel) {
         }
         composable("app_settings_explorer") {
             KaspaExplorerSettingsScreen(onBack = { navController.popBackStack() })
-        }
-        composable("app_settings_diagnostics") {
-            AppDiagnosticsScreen(onBack = { navController.popBackStack() })
         }
     }
 }
@@ -406,8 +396,7 @@ fun WelcomeScreen(
                                 requireBiometricLogin = biometricAccountLoginEnabled,
                                 onLogin = { viewModel.login(account.address) },
                                 onRename = { newName -> viewModel.renameAccount(account.address, newName) },
-                                onDelete = { alsoRemoveBackup -> viewModel.deleteWallet(account.address, alsoRemoveBackup) },
-                                nextcloudConnected = viewModel.nextcloudConnected()
+                                onDelete = { viewModel.deleteWallet(account.address) },
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                         }
@@ -512,10 +501,7 @@ fun SavedAccountCard(
     requireBiometricLogin: Boolean = false,
     onLogin: () -> Unit,
     onRename: (String) -> Unit,
-    /** True also removes the encrypted Nextcloud archive - the second destructive choice. */
-    onDelete: (Boolean) -> Unit,
-    /** Whether that second choice is offered at all. */
-    nextcloudConnected: Boolean = false
+    onDelete: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
@@ -653,21 +639,12 @@ fun SavedAccountCard(
         ConfirmActionSheet(
             title = stringResource(R.string.delete_account),
             confirmTitle = stringResource(R.string.delete),
-            confirmSubtitle = "Removes \"${account.name}\" and everything it holds on this device - its " +
-                "chats, contacts, groups and keys. Messages and posts already on the Kaspa blockDAG " +
-                "stay there and cannot be deleted. " +
-                (if (nextcloudConnected) "Your encrypted Nextcloud backup stays. " else "") +
-                "Without its seed phrase written down, any remaining balance is unrecoverable.",
+            confirmSubtitle = "Removes \"${account.name}\" and its keys from this device. Moves already " +
+                "on the Kaspa blockDAG stay there and cannot be deleted. Without its seed phrase " +
+                "written down, any remaining balance is unrecoverable.",
             confirmIcon = Icons.Default.Delete,
-            onConfirm = { onDelete(false) },
+            onConfirm = { onDelete() },
             onDismiss = { showDeleteConfirm = false },
-            secondaryTitle = if (nextcloudConnected) "Delete and Remove Nextcloud Backup" else null,
-            secondarySubtitle = if (nextcloudConnected) {
-                "The same, and deletes the encrypted archive from your Nextcloud. Your other " +
-                    "devices lose it too, and it cannot be brought back from here."
-            } else null,
-            secondaryIcon = if (nextcloudConnected) Icons.Default.CloudOff else null,
-            onSecondary = if (nextcloudConnected) ({ onDelete(true) }) else null,
         )
     }
 }

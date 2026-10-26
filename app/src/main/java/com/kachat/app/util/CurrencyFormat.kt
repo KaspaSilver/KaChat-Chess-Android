@@ -40,7 +40,3 @@ fun formatKasAmount(kas: Double): String {
     return String.format(Locale.US, "%.8f", kas).trimEnd('0').trimEnd('.')
 }
 
-/** Same as [formatKasAmount] but with thousands separators (e.g. "12,345.5") — for read-only display only, never for a value that gets parsed back (e.g. an editable text field). */
-fun formatKasAmountGrouped(kas: Double): String {
-    return String.format(Locale.US, "%,.8f", kas).trimEnd('0').trimEnd('.')
-}

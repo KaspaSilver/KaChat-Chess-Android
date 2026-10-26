@@ -99,20 +99,6 @@ private class KachatWordmarkPainter : Painter() {
 }
 
 /**
- * The .kachat wordmark [height] tall in [tint] (iOS `KachatTabIcon.view(side:)`): the .kachat
- * hero and the setup guide's first step draw it at 56.
- */
-@Composable
-fun KachatWordmark(height: androidx.compose.ui.unit.Dp, modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, tint: androidx.compose.ui.graphics.Color = com.kachat.app.ui.theme.KaspaTeal) {
-    androidx.compose.material3.Icon(
-        painter = remember { KachatWordmarkPainter() },
-        contentDescription = ".kachat",
-        tint = tint,
-        modifier = modifier.then(Screen.KachatNames.tabIconModifier(height)),
-    )
-}
-
-/**
  * The box a tab's icon is drawn in, [size] tall. The chess pieces and the .kachat wordmark are
  * wider than they are tall, and iOS draws them at the full height with their natural width
  * (ChessTabIcon / KachatTabIcon `image(side:)`); a [size] square shrank them to fit its width,

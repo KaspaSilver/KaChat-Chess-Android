@@ -123,9 +123,6 @@ class KachatNamesActions @Inject constructor(
     /** The plain self-send that combines many small coins into one before a name transaction
      *  ([combineCoins], iOS f1c16ec). */
     private val walletEngine: com.kachat.app.services.KaspaWalletEngine,
-    /** KasSigner (watch-only) accounts, to tell which of this wallet's addresses holds a name
-     *  ([ownAddress], iOS 881ada6). Read only: their keys never live here. */
-    private val coldStorageManager: com.kachat.app.services.ColdStorageManager,
     /** Whether a spending address was ever used ([ownNameKeys], iOS d1026de: ChatService's
      *  `spendingAddressUsedState`). Lazy: only read when the registry is asked about them. */
     private val walletService: dagger.Lazy<com.kachat.app.services.WalletService>
@@ -301,18 +298,6 @@ class KachatNamesActions @Inject constructor(
             for ((index, address) in spending.entries.sortedBy { it.key }) {
                 if (KachatNamesRegistry.keyOf(address)?.contentEquals(owner) == true) {
                     return@withContext OwnAddress.Spending(index, address)
-                }
-            }
-        }
-        val cold = runCatching { coldStorageManager.getAccounts() }.getOrNull().orEmpty()
-        for (c in cold) {
-            val root = com.kachat.app.util.KaspaExtendedPublicKey.parse(c.kpub).getOrNull()
-                ?.let { com.kachat.app.util.KaspaExtendedPublicKey.toDeterministicKey(it) } ?: continue
-            for (index in 0..maxOf(0, c.maxDerivedIndex)) {
-                val address = runCatching { com.kachat.app.util.KaspaExtendedPublicKey.deriveChildAddress(root, chain = 0, index = index) }.getOrNull()
-                    ?: continue
-                if (KachatNamesRegistry.keyOf(address)?.contentEquals(owner) == true) {
-                    return@withContext OwnAddress.KasSigner(c.name, index, address)
                 }
             }
         }
@@ -758,9 +743,7 @@ class KachatNamesActions @Inject constructor(
      */
     suspend fun combineCoins(s: Signer): String {
         val utxos = service.utxosByAddresses(listOf(s.address))
-        val reserved = com.kachat.app.services.KaPostsScheduledStore.reservedOutpoints.mapTo(HashSet()) { it.lowercase() }
         val plain = utxos
-            .filter { "${hex(it.outpoint.txid)}:${it.outpoint.index}".lowercase() !in reserved }
             .filter { it.entry.covenantId == null }
             .sortedByDescending { it.entry.amount }
             .take(com.kachat.app.util.KaspaUtxoSelector.MAX_INPUTS_PER_TRANSACTION)

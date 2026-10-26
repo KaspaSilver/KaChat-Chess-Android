@@ -65,12 +65,8 @@ class KaspaWalletEngine @Inject constructor(
         spent.removeAll { key -> (pendingRecordedAtMs[key] ?: 0L) < cutoff }
         change.removeAll { (pendingRecordedAtMs[outpointKey(it.outpoint)] ?: 0L) < cutoff }
         pendingRecordedAtMs.entries.removeAll { it.value < cutoff }
-        // A coin a scheduled post is waiting to spend is not available to anything else, or the
-        // signed transaction would be invalid by the time its moment came (iOS's
-        // KaPostsScheduledStore.filterReserved, applied at the same choke point).
-        val available = KaPostsScheduledStore.filterReserved(freshUtxos)
         val ownScriptHex = try { KaspaAddress.getScriptPublicKey(address) } catch (_: Exception) { null }
-        return reconcilePendingUtxos(available, spent, change, ownScriptHex)
+        return reconcilePendingUtxos(freshUtxos, spent, change, ownScriptHex)
     }
 
     /** Drops these pending change coins of [address] (iOS consumePendingUtxos): a chained coin

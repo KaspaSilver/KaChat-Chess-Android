@@ -13,18 +13,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-// KaChat brand colors — inspired by Kaspa's blue/teal palette
-// iOS's AccentColor asset exactly: sRGB (0.439, 0.780, 0.729) = #70C7BA, the same in both themes.
-val KaspaBlue    = Color(0xFF70C7BA)
 val KaspaTeal    = Color(0xFF70C7BA)
-val KaspaDark    = Color(0xFF000000) // True black background for iOS look
-val KaspaNavy    = Color(0xFF121212) // Slightly lighter black for surfaces
-val KaspaCard    = Color(0xFF1E1E1E) // For "Saved Accounts" card style
-val KaspaBorder  = Color(0xFF333333)
-val KaspaText    = Color(0xFFFFFFFF)
 val KaspaSubtext = Color(0xFF8D8D93)
-val KaspaError   = Color(0xFFFC8181)
-
 private val DarkColorScheme = darkColorScheme(
     primary          = KaspaTeal,
     onPrimary        = Color.Black,
@@ -233,10 +223,6 @@ val LightPlainSheetAppColors = LightAppColors.copy(
 )
 
 val LocalAppColors = staticCompositionLocalOf { DarkAppColors }
-
-/** Shorthand for `LocalAppColors.current` — mirrors the `MaterialTheme.colorScheme` accessor pattern. */
-val MaterialTheme.appColors: AppColors
-    @Composable get() = LocalAppColors.current
 
 @Composable
 fun KaChatTheme(

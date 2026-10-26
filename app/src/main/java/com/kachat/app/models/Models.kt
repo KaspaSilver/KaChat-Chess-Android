@@ -256,30 +256,12 @@ fun addressDisplayName(
     // exists, and the plain address before it (iOS 7d11735).
     if (!com.kachat.app.services.WalletManager.isOwnChattingAddress(address)) {
         alias?.takeIf { it.isNotBlank() }?.let { return it }
-        com.kachat.app.services.AddressBookManager.nameFor(address)?.let { return it }
     }
     if (com.kachat.app.services.kachatnames.KachatNamesService.isEnabled) {
         return com.kachat.app.services.kachatnames.KachatNamesRegistry.kachatName(address) ?: fallback
     }
     return knsName?.takeIf { it.isNotBlank() } ?: fallback
 }
-
-/**
- * A live name for [address] from an address -> name map (contact aliases, the group members'
- * names), else its Address Book name, else on testnet its `.kachat` name - the [addressDisplayName] rule for screens that
- * keep a names map and their own fallback after it.
- */
-fun Map<String, String>.liveNameFor(address: String): String? =
-    this[address]?.takeIf { it.isNotBlank() }
-        ?: com.kachat.app.services.AddressBookManager.nameFor(address)
-        ?: com.kachat.app.services.kachatnames.KachatNamesRegistry.kachatName(address)
-
-/** Avatar initial source - same order, but the raw tail rather than the formatted short address. */
-val ContactEntity.avatarFallbackText: String
-    get() = alias?.takeIf { it.isNotBlank() }
-        ?: knsName?.takeIf { it.isNotBlank() && com.kachat.app.services.KnsService.SHOWS_DOMAIN_NAMES_AS_IDENTITY }
-        ?: id.takeLast(8)
-
 
 /**
  * A tombstone marking that [contactId] was deleted (by this wallet), keyed by [deletedAt] —
@@ -323,15 +305,6 @@ data class DeletedContactEntity(
     val deletedAt: Long = System.currentTimeMillis(),
     val deletedAtTxIds: String = "",
     val lifted: Boolean = false
-)
-
-/**
- * In-memory model for a conversation (not persisted directly — derived from messages).
- */
-data class Conversation(
-    val contact: ContactEntity,
-    val lastMessage: MessageEntity?,
-    val unreadCount: Int
 )
 
 /** Room query projection — one row per contact with at least one unread received message. */

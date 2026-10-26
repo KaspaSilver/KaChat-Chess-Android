@@ -60,7 +60,6 @@ fun AppSettingsHubScreen(
     onOpenCustomization: () -> Unit,
     onOpenSecurity: () -> Unit,
     onOpenConnection: () -> Unit,
-    onOpenDiagnostics: () -> Unit,
 ) {
     AppSettingsPageScaffold(title = stringResource(R.string.app_settings), onBack = onBack) {
         Surface(
@@ -74,8 +73,6 @@ fun AppSettingsHubScreen(
                 SettingsNavigationItem(stringResource(R.string.security), Icons.Default.Security, onClick = onOpenSecurity)
                 HorizontalDivider(color = LocalAppColors.current.divider)
                 SettingsNavigationItem(stringResource(R.string.connection), Icons.Default.Language, onClick = onOpenConnection)
-                HorizontalDivider(color = LocalAppColors.current.divider)
-                SettingsNavigationItem(stringResource(R.string.diagnostics), Icons.Default.MonitorHeart, onClick = onOpenDiagnostics)
             }
         }
         Spacer(Modifier.height(IosFormSectionGap))
@@ -106,15 +103,11 @@ fun AppCustomizationScreen(
 @Composable
 fun AppSecurityScreen(
     onBack: () -> Unit,
-    onNavigateToChildMode: () -> Unit,
     walletViewModel: WalletViewModel = hiltViewModel(),
 ) {
     AppSettingsPageScaffold(title = stringResource(R.string.security), onBack = onBack) {
         SettingsFormSection(title = stringResource(R.string.security)) {
-            SecuritySettingsItems(
-                walletViewModel = walletViewModel,
-                onNavigateToChildMode = onNavigateToChildMode
-            )
+            SecuritySettingsItems(walletViewModel = walletViewModel)
         }
     }
 }
@@ -125,9 +118,9 @@ fun AppConnectionScreen(
     onBack: () -> Unit,
     onOpenConnectionSettings: () -> Unit,
     onOpenExplorer: () -> Unit,
-    chatViewModel: com.kachat.app.viewmodels.ChatViewModel = hiltViewModel(),
+    walletViewModel: WalletViewModel = hiltViewModel(),
 ) {
-    val explorer by chatViewModel.kaspaExplorer.collectAsState()
+    val explorer by walletViewModel.kaspaExplorer.collectAsState()
     AppSettingsPageScaffold(title = stringResource(R.string.connection), onBack = onBack) {
         ConnectionHubSections(
             explorerName = explorer.displayName,
@@ -137,17 +130,6 @@ fun AppConnectionScreen(
     }
 }
 
-/** App-wide Diagnostics page — the same sections as in-account Settings > Diagnostics via [DiagnosticsSettingsSections]. */
-@Composable
-fun AppDiagnosticsScreen(onBack: () -> Unit) {
-    AppSettingsPageScaffold(title = stringResource(R.string.diagnostics), onBack = onBack) {
-        DiagnosticsSettingsSections()
-    }
-}
-
-/** Shared chrome for the App Settings hub and its category pages — the same iOS Form page the
- *  in-account Settings pages use ([SettingsFormPage]: inline bar with the back chevron on the
- *  left, the title centred, sections spaced as iOS spaces them). */
 @Composable
 private fun AppSettingsPageScaffold(
     title: String,

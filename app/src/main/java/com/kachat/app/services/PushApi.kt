@@ -83,19 +83,6 @@ data class PushRegistrationRequest(
     @SerializedName("auth") val auth: PushAuthRequest? = null,
 )
 
-/** The five switchable KaPosts kinds, as sent at registration. Order: likes, dislikes,
- *  comments, reposts, follows. */
-data class KaPostsNotifyKinds(
-    val likes: Boolean = true,
-    val dislikes: Boolean = true,
-    val comments: Boolean = true,
-    val reposts: Boolean = true,
-    val follows: Boolean = true,
-) {
-    /** Stable text for the registration fingerprint. */
-    fun fingerprint(): String = listOf(likes, dislikes, comments, reposts, follows).joinToString(",") { if (it) "1" else "0" }
-}
-
 /**
  * `POST /v1/push/ring` — ring [toAddress]'s devices for a call this device is placing
  * (the iOS repo's PUSH_EXTENSIONS.md §5, same body iOS sends).
