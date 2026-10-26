@@ -34,7 +34,6 @@
     <string name="change">Cambia</string>
     <string name="changenow_exchange_id">ID scambio ChangeNOW</string>
     <string name="chats">Chat</string>
-    <string name="chatting_address">Indirizzo di chat</string>
     <string name="chatting_address_2">Indirizzo di chat</string>
     <string name="check_again">Controlla di nuovo</string>
     <string name="checking_availability">Verifica disponibilità...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">Per iniziare si consigliano 50 Kaspa: abbastanza per rivendicare un nome .kachat e chattare per un po\'. 5 Kaspa bastano per circa 2500 messaggi.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">Testnet</string>
-    <string name="testnet_restart_to_testnet">Chiudi completamente KaChat e riaprilo per completare il passaggio al Testnet.</string>
-    <string name="testnet_restart_to_mainnet">Chiudi completamente KaChat e riaprilo per completare il ritorno al Mainnet.</string>
     <string name="kaposts_not_on_testnet">KaPosts non è ancora disponibile sulla Testnet</string>
     <string name="kaposts_not_on_testnet_sub">Non esiste un indicizzatore KaPost per la testnet. Disattiva Testnet in Impostazioni > Connessione per leggere e pubblicare sulla mainnet.</string>
     <string name="nextcloud_off_on_testnet">Nextcloud è disattivato finché la Testnet è attiva.</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">Mostra il codice QR per aggiungere Kaspa per inviare messaggi.</string>
     <string name="chats_receive_subtitle">Mostra un indirizzo nuovo per ricevere pagamenti.</string>
     <string name="qr_receive_address_subtitle">Un indirizzo nuovo, mai usato. I Kaspa inviati qui arrivano su questo account e compaiono nel tuo saldo spendibile. Usa questo indirizzo per tutto ciò che non riguarda chat o domini.</string>
-    <string name="qr_chatting_address_subtitle">Questo indirizzo va usato solo per chat e domini. 1 Kaspa basta per circa 500 interazioni nell\'app. I domini costano da 35 a 4.000 Kaspa, a seconda del nome.</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">Controllo monete</string>
     <string name="automatic">Automatico</string>

@@ -34,7 +34,6 @@
     <string name="change">更改</string>
     <string name="changenow_exchange_id">ChangeNOW 交易 ID</string>
     <string name="chats">聊天</string>
-    <string name="chatting_address">聊天地址</string>
     <string name="chatting_address_2">聊天地址</string>
     <string name="check_again">重新检查</string>
     <string name="checking_availability">正在检查可用性...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">建议先准备 50 Kaspa——足够领取一个 .kachat 名称并聊上一阵子。5 Kaspa 大约可发送 2500 条消息。</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">测试网</string>
-    <string name="testnet_restart_to_testnet">请完全关闭 KaChat 后重新打开，以完成切换到测试网。</string>
-    <string name="testnet_restart_to_mainnet">请完全关闭 KaChat 后重新打开，以完成切换回主网。</string>
     <string name="kaposts_not_on_testnet">KaPosts 暂不支持测试网</string>
     <string name="kaposts_not_on_testnet_sub">测试网还没有 KaPost 索引器。在“设置 > 连接”中关闭测试网，即可在主网阅读和发帖。</string>
     <string name="nextcloud_off_on_testnet">测试网开启时，Nextcloud 处于关闭状态。</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">显示二维码，添加用于发送消息的 Kaspa。</string>
     <string name="chats_receive_subtitle">显示一个新地址用于收款。</string>
     <string name="qr_receive_address_subtitle">一个从未使用过的新地址。发送到这里的 Kaspa 会进入此账户，并计入你的可用余额。与聊天或域名无关的一切都应使用此地址。</string>
-    <string name="qr_chatting_address_subtitle">此地址仅用于聊天和域名。1 Kaspa 足够在应用内进行约 500 次操作。域名价格为 35 至 4,000 Kaspa，取决于名称。</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">币控</string>
     <string name="automatic">自动</string>

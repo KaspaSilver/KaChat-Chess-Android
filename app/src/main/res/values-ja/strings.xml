@@ -34,7 +34,6 @@
     <string name="change">変更</string>
     <string name="changenow_exchange_id">ChangeNOW交換ID</string>
     <string name="chats">チャット</string>
-    <string name="chatting_address">チャットアドレス</string>
     <string name="chatting_address_2">チャットアドレス</string>
     <string name="check_again">再確認</string>
     <string name="checking_availability">空き状況を確認中...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">始めるには 50 Kaspa がおすすめです。.kachat 名を取得してしばらくチャットできます。5 Kaspa で約 2500 件のメッセージを送れます。</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">テストネット</string>
-    <string name="testnet_restart_to_testnet">テストネットへの切り替えを完了するには、KaChat を完全に終了して開き直してください。</string>
-    <string name="testnet_restart_to_mainnet">メインネットへの切り替えを完了するには、KaChat を完全に終了して開き直してください。</string>
     <string name="kaposts_not_on_testnet">KaPosts はまだテストネットでは利用できません</string>
     <string name="kaposts_not_on_testnet_sub">テストネット用の KaPost インデクサーはありません。メインネットで閲覧・投稿するには、設定 > 接続 でテストネットをオフにしてください。</string>
     <string name="nextcloud_off_on_testnet">テストネットがオンの間、Nextcloud はオフになります。</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">メッセージ送信用のKaspaを追加するQRコードを表示します。</string>
     <string name="chats_receive_subtitle">支払いを受け取る新しいアドレスを表示します。</string>
     <string name="qr_receive_address_subtitle">一度も使われていない新しいアドレスです。ここに送られたKaspaはこのアカウントに入り、支払い用残高に表示されます。チャットやドメイン以外のすべての用途にこのアドレスを使ってください。</string>
-    <string name="qr_chatting_address_subtitle">このアドレスはチャットとドメイン専用です。1 Kaspaでアプリ内の操作が約500回できます。ドメインは名前によって35〜4,000 Kaspaです。</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">コインコントロール</string>
     <string name="automatic">自動</string>

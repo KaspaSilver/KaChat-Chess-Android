@@ -34,7 +34,6 @@
     <string name="change">Degistir</string>
     <string name="changenow_exchange_id">ChangeNOW Takas Kimligi</string>
     <string name="chats">Sohbetler</string>
-    <string name="chatting_address">Sohbet Adresi</string>
     <string name="chatting_address_2">Sohbet adresi</string>
     <string name="check_again">Tekrar Kontrol Et</string>
     <string name="checking_availability">Kullanılabilirlik kontrol ediliyor...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">Başlamak için 50 Kaspa önerilir - bir .kachat adı almaya ve bir süre sohbet etmeye yeter. 5 Kaspa yaklaşık 2500 mesaja yeter.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">Testnet</string>
-    <string name="testnet_restart_to_testnet">Testnet\'e geçişi tamamlamak için KaChat\'i tamamen kapatıp yeniden aç.</string>
-    <string name="testnet_restart_to_mainnet">Mainnet\'e dönüşü tamamlamak için KaChat\'i tamamen kapatıp yeniden aç.</string>
     <string name="kaposts_not_on_testnet">KaPosts henüz Testnet\'te kullanılamıyor</string>
     <string name="kaposts_not_on_testnet_sub">Testnet için bir KaPost dizinleyicisi yok. Mainnet\'te okumak ve paylaşmak için Ayarlar > Bağlantı bölümünden Testnet\'i kapatın.</string>
     <string name="nextcloud_off_on_testnet">Testnet açıkken Nextcloud kapalıdır.</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">Mesaj göndermek için Kaspa eklemek üzere QR kodunu gösterir.</string>
     <string name="chats_receive_subtitle">Ödeme almak için yeni bir adres gösterir.</string>
     <string name="qr_receive_address_subtitle">Daha önce hiç kullanılmamış yeni bir adres. Buraya gönderilen Kaspa bu hesaba gelir ve harcama bakiyende görünür. Bu adresi sohbet veya alan adlarıyla ilgili olmayan her şey için kullan.</string>
-    <string name="qr_chatting_address_subtitle">Bu adres yalnızca sohbet ve alan adları için kullanılmalı. 1 Kaspa uygulamada yaklaşık 500 işlem için yeterli. Alan adları, ada göre 35 ile 4.000 Kaspa arasında.</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">Coin kontrolü</string>
     <string name="automatic">Otomatik</string>

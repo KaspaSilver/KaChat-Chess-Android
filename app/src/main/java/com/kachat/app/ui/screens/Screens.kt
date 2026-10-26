@@ -755,7 +755,7 @@ fun IdentityAddressDetailScreen(
     /** Opened as the root of the "Received" History sheet (iOS 13046ad `OwnAddressHistorySheet`):
      *  Done closes it, top left, in place of the back arrow. */
     closesWithDone: Boolean = false,
-    title: String = "Chatting Address",
+    title: String = "Your Address",
 ) {
     val address by viewModel.address.collectAsState()
     val balanceSompi by viewModel.balanceSompi.collectAsState()
@@ -1137,7 +1137,7 @@ private fun IdentityAddressPublicKeyOverlay(address: String, onDismiss: () -> Un
                     Text("Safe to share", color = colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
                 Text(
-                    "This is the public half of your chatting address. It identifies you and cannot spend anything.",
+                    "This is the public half of your address. It identifies you and cannot spend anything.",
                     color = colors.textSecondary,
                     fontSize = 13.sp,
                 )

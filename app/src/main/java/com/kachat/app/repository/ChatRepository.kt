@@ -104,6 +104,8 @@ class ChatRepository @Inject constructor(
             } catch (e: Exception) {
                 Log.w("ChatRepository", "Startup prune failed", e)
             }
+            // KaChat Chess has no chats: the 1:1 poll stops here (iOS ChatService.syncsChats).
+            if (!SYNCS_CHATS) return@launch
             // Consecutive cycles in which the indexer errored (see noteIndexerError) — drives
             // the exponential backoff below so a dead indexer doesn't get the full fan-out
             // retried at the fast cadence forever.
@@ -3139,6 +3141,12 @@ class ChatRepository @Inject constructor(
     }
 
     companion object {
+        /**
+         * KaChat Chess has no chats: the 1:1 poll loop (handshakes, messages, the inbox) never
+         * runs. The repository stays for the contacts and the bookkeeping the wallet's sends go
+         * through (iOS ChatService.syncsChats).
+         */
+        const val SYNCS_CHATS = false
         /**
          * [firstContactInboxTag]'s decision. Every address check is case-insensitive, the
          * "have they written to us" lookup included: it used to match the stored conversation

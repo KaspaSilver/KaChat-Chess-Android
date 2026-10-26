@@ -34,7 +34,6 @@
     <string name="change">تغيير</string>
     <string name="changenow_exchange_id">معرّف تبادل ChangeNOW</string>
     <string name="chats">المحادثات</string>
-    <string name="chatting_address">عنوان الدردشة</string>
     <string name="chatting_address_2">عنوان الدردشة</string>
     <string name="check_again">التحقق مرة أخرى</string>
     <string name="checking_availability">جارٍ التحقق من التوفر...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">يُنصح بـ 50 Kaspa للبدء - ما يكفي للحصول على اسم ‎.kachat والدردشة لفترة. تكفي 5 Kaspa لنحو 2500 رسالة.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">الشبكة التجريبية</string>
-    <string name="testnet_restart_to_testnet">أغلق KaChat تمامًا ثم افتحه مجددًا لإتمام التبديل إلى الشبكة التجريبية.</string>
-    <string name="testnet_restart_to_mainnet">أغلق KaChat تمامًا ثم افتحه مجددًا لإتمام العودة إلى الشبكة الرئيسية.</string>
     <string name="kaposts_not_on_testnet">KaPosts لسه مش متاحة على الشبكة التجريبية</string>
     <string name="kaposts_not_on_testnet_sub">مفيش مفهرس KaPost للشبكة التجريبية. اقفل الشبكة التجريبية من الإعدادات > الاتصال علشان تقرا وتنشر على الشبكة الرئيسية.</string>
     <string name="nextcloud_off_on_testnet">Nextcloud مقفول طول ما الشبكة التجريبية شغالة.</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">بيوريك كود QR عشان تضيف Kaspa لإرسال الرسايل.</string>
     <string name="chats_receive_subtitle">بيوريك عنوان جديد عشان تستلم فلوس.</string>
     <string name="qr_receive_address_subtitle">عنوان جديد عمره ما اتستخدم. الـKaspa اللي تتبعت هنا بتوصل للحساب ده وبتظهر في رصيد الصرف بتاعك. استخدم العنوان ده لأي حاجة مش ليها علاقة بالشات أو الدومينات.</string>
-    <string name="qr_chatting_address_subtitle">العنوان ده للشات والدومينات بس. 1 Kaspa يكفي لحوالي 500 استخدام في التطبيق. الدومينات بتتكلف من 35 لـ4000 Kaspa حسب الاسم.</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">التحكم في العملات</string>
     <string name="automatic">تلقائي</string>

@@ -7,16 +7,8 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.protobuf)
-    alias(libs.plugins.google.services) apply false
 }
 
-// Firebase Cloud Messaging is opt-in on the drop-in `google-services.json` (Firebase console →
-// Project settings → your Android app → download). Applied only when that file is present so a
-// checkout without it (fresh clone / CI without secrets) still builds — FCM is simply inactive
-// until the file is added. Same conditional-local-file pattern as keystore.properties below.
-if (file("google-services.json").exists()) {
-    apply(plugin = "com.google.gms.google-services")
-}
 
 protobuf {
     protoc {
@@ -87,22 +79,17 @@ android {
         applicationId = "com.kachat.chess"
         minSdk = 26
         targetSdk = 36
-        // ---- Version train ----
-        // 4.1 shipped on 2026-09-15; every build from here is 5.0, the same train iOS runs.
+        // ---- Version ----
+        // KaChat Chess's own train, 1.0 (1) like the iPhone app's Version.xcconfig.
         //
-        // KACHAT_BUILD_NUMBER is the number people see: the About row and the crash and
-        // diagnostics reports read "5.1 (1)", "5.1 (2)", ... on a handed-out GitHub build, and
-        // plain "5.1" on the Play build (see KACHAT_IS_RELEASE per flavour below). Bump it for
-        // every build that is handed out - the counterpart of iOS's Version.xcconfig
-        // KACHAT_BUILD_NUMBER, so the two apps report the same shape.
-        //
-        // versionCode is a separate thing and only ever goes up: Play's high-water mark is
-        // permanent and per app, and unlike iOS it does NOT reset when versionName changes
-        // (4.1's builds ran 35..47). A device will not treat a rebuild as an update unless it
-        // moves, so it goes up with every handed-out build too, alongside the build number.
-        val kachatBuildNumber = 7
-        versionCode = 120
-        versionName = "5.2.2"
+        // KACHAT_BUILD_NUMBER is the number people see: the About row and the crash reports read
+        // "1.0 (1)", "1.0 (2)", ... on a handed-out GitHub build, and plain "1.0" on the Play
+        // build (see KACHAT_IS_RELEASE per flavour below). Bump it for every build that is handed
+        // out. versionCode only ever goes up (Play's high-water mark is permanent), so it moves
+        // with every handed-out build too.
+        val kachatBuildNumber = 1
+        versionCode = 1
+        versionName = "1.0"
         buildConfigField("int", "KACHAT_BUILD_NUMBER", kachatBuildNumber.toString())
         // KACHAT_IS_RELEASE is set per flavour below rather than once here, because on Android the
         // two channels ARE the two answers iOS's single flag flips between: what goes to the Play
@@ -110,11 +97,6 @@ android {
         // and reports "5.1 (23)". One flag for both meant remembering to flip it at submission and
         // flip it back afterwards, and a forgotten flip ships a store build labelled like a beta.
 
-        buildConfigField(
-            "String",
-            "CHANGENOW_API_KEY",
-            "\"${localProperties.getProperty("changenow.api.key", "")}\""
-        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -289,21 +271,10 @@ dependencies {
     implementation(libs.okhttp.core)
     implementation(libs.okhttp.logging)
 
-    // Firebase Cloud Messaging — native push (registration signed with the wallet key against
-    // the KaChat indexer's /v1/push API). Only active when google-services.json is present.
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging)
 
     // Coroutines
     implementation(libs.coroutines.android)
-    implementation(libs.coroutines.play.services)
 
-    // Play Integrity - device attestation for the one-per-device Kaspa welcome-gift claim
-    // (Android equivalent of iOS's DeviceCheck + App Attest).
-
-    // ML Kit on-device translation for KaPosts (translate + source-language identification).
-    // Both run locally against downloaded language packs; nothing is sent to a server.
-    implementation(libs.mlkit.language.id)
 
     // DataStore (settings/preferences)
     implementation(libs.datastore.preferences)
@@ -334,8 +305,6 @@ dependencies {
     // Image loading (KNS avatars)
     implementation(libs.coil.compose)
 
-    // Voice and video calls (WebRTC over Nextcloud Talk's signaling) - see CallService
-    implementation(libs.webrtc)
 
     // gRPC (Kaspa node connections)
     implementation(libs.grpc.okhttp)

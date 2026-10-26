@@ -34,7 +34,6 @@
     <string name="change">Ändern</string>
     <string name="changenow_exchange_id">ChangeNOW Tausch-ID</string>
     <string name="chats">Chats</string>
-    <string name="chatting_address">Chat-Adresse</string>
     <string name="chatting_address_2">Chat-Adresse</string>
     <string name="check_again">Erneut prüfen</string>
     <string name="checking_availability">Verfügbarkeit prüfen...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">Zum Start werden 50 Kaspa empfohlen - genug, um dir einen .kachat-Namen zu sichern und eine Weile zu chatten. 5 Kaspa reichen für etwa 2500 Nachrichten.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">Testnet</string>
-    <string name="testnet_restart_to_testnet">Schließe KaChat vollständig und öffne es erneut, um den Wechsel zum Testnet abzuschließen.</string>
-    <string name="testnet_restart_to_mainnet">Schließe KaChat vollständig und öffne es erneut, um den Wechsel zurück zum Mainnet abzuschließen.</string>
     <string name="kaposts_not_on_testnet">KaPosts ist im Testnet noch nicht verfügbar</string>
     <string name="kaposts_not_on_testnet_sub">Für das Testnet gibt es keinen KaPost-Indexer. Schalte Testnet unter Einstellungen > Verbindung aus, um im Mainnet zu lesen und zu posten.</string>
     <string name="nextcloud_off_on_testnet">Nextcloud ist aus, solange Testnet an ist.</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">Zeigt den QR-Code, um Kaspa zum Senden von Nachrichten hinzuzufügen.</string>
     <string name="chats_receive_subtitle">Zeigt eine neue Adresse, um bezahlt zu werden.</string>
     <string name="qr_receive_address_subtitle">Eine neue, noch nie benutzte Adresse. Kaspa, die hierher gesendet werden, landen in diesem Konto und erscheinen in deinem Ausgabenguthaben. Diese Adresse sollte für alles verwendet werden, was nichts mit Chats oder Domains zu tun hat.</string>
-    <string name="qr_chatting_address_subtitle">Diese Adresse sollte nur für Chats und Domains genutzt werden. 1 Kaspa reicht für etwa 500 Aktionen in der App. Domains kosten je nach Name 35 bis 4.000 Kaspa.</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">Coin Control</string>
     <string name="automatic">Automatisch</string>

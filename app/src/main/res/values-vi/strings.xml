@@ -34,7 +34,6 @@
     <string name="change">Thay đổi</string>
     <string name="changenow_exchange_id">ID trao đổi ChangeNOW</string>
     <string name="chats">Trò chuyện</string>
-    <string name="chatting_address">Địa chỉ trò chuyện</string>
     <string name="chatting_address_2">Địa chỉ trò chuyện</string>
     <string name="check_again">Kiểm tra lại</string>
     <string name="checking_availability">Đang kiểm tra tính khả dụng...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">Nên có 50 Kaspa để bắt đầu - đủ để nhận một tên .kachat và trò chuyện một thời gian. 5 Kaspa đủ cho khoảng 2500 tin nhắn.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">Testnet</string>
-    <string name="testnet_restart_to_testnet">Đóng hẳn KaChat rồi mở lại để hoàn tất chuyển sang Testnet.</string>
-    <string name="testnet_restart_to_mainnet">Đóng hẳn KaChat rồi mở lại để hoàn tất quay về Mainnet.</string>
     <string name="kaposts_not_on_testnet">KaPosts chưa khả dụng trên Testnet</string>
     <string name="kaposts_not_on_testnet_sub">Chưa có trình lập chỉ mục KaPost cho testnet. Tắt Testnet trong Cài đặt > Kết nối để đọc và đăng trên mainnet.</string>
     <string name="nextcloud_off_on_testnet">Nextcloud tắt khi Testnet đang bật.</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">Hiện mã QR để nạp Kaspa dùng cho việc gửi tin nhắn.</string>
     <string name="chats_receive_subtitle">Hiện một địa chỉ mới để nhận thanh toán.</string>
     <string name="qr_receive_address_subtitle">Một địa chỉ mới, chưa từng dùng. Kaspa gửi đến đây sẽ vào tài khoản này và hiện trong số dư chi tiêu của bạn. Hãy dùng địa chỉ này cho mọi việc không liên quan đến trò chuyện hoặc tên miền.</string>
-    <string name="qr_chatting_address_subtitle">Địa chỉ này chỉ dành cho trò chuyện và tên miền. 1 Kaspa đủ cho khoảng 500 lượt tương tác trong ứng dụng. Tên miền có giá từ 35 đến 4.000 Kaspa tùy theo tên.</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">Kiểm soát coin</string>
     <string name="automatic">Tự động</string>

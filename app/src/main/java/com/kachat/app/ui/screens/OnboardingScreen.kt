@@ -330,7 +330,7 @@ fun WelcomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.kachat),
+                    text = "KaChat Chess",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 36.sp
@@ -353,7 +353,7 @@ fun WelcomeScreen(
             // saying what it belongs to.
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = stringResource(R.string.secure_messaging_on_kaspa_blockdag),
+                text = "Chess on Kaspa: every move is on chain",
                 style = MaterialTheme.typography.bodyLarge,
                 color = KaspaSubtext,
                 textAlign = TextAlign.Center
@@ -482,7 +482,7 @@ fun WelcomeScreen(
         // (iOS: 10pt above the safe area), so the height budget that keeps Create and Import on
         // screen is untouched and a 3-button bar never covers it.
         Text(
-            text = "KaChat ${com.kachat.app.util.AppVersion.display}",
+            text = "KaChat Chess ${com.kachat.app.util.AppVersion.display}",
             fontSize = 11.sp,
             color = LocalAppColors.current.textSecondary,
             modifier = Modifier

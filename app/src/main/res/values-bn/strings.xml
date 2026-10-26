@@ -34,7 +34,6 @@
     <string name="change">পরিবর্তন করুন</string>
     <string name="changenow_exchange_id">ChangeNOW এক্সচেঞ্জ আইডি</string>
     <string name="chats">চ্যাট</string>
-    <string name="chatting_address">চ্যাট ঠিকানা</string>
     <string name="chatting_address_2">চ্যাট ঠিকানা</string>
     <string name="check_again">আবার পরীক্ষা করুন</string>
     <string name="checking_availability">উপলব্ধতা পরীক্ষা করা হচ্ছে...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">শুরু করতে ৫০ Kaspa সুপারিশ করা হয় - একটি .kachat নাম নেওয়া ও কিছুদিন চ্যাট করার জন্য যথেষ্ট। ৫ Kaspa দিয়ে প্রায় ২৫০০ মেসেজ পাঠানো যায়।</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">টেস্টনেট</string>
-    <string name="testnet_restart_to_testnet">টেস্টনেটে বদল শেষ করতে KaChat পুরোপুরি বন্ধ করে আবার খুলুন।</string>
-    <string name="testnet_restart_to_mainnet">মেইননেটে ফেরা শেষ করতে KaChat পুরোপুরি বন্ধ করে আবার খুলুন।</string>
     <string name="kaposts_not_on_testnet">KaPosts এখনও টেস্টনেটে উপলব্ধ নয়</string>
     <string name="kaposts_not_on_testnet_sub">টেস্টনেটের জন্য কোনো KaPost ইনডেক্সার নেই। মেইননেটে পড়তে ও পোস্ট করতে সেটিংস > সংযোগ থেকে টেস্টনেট বন্ধ করুন।</string>
     <string name="nextcloud_off_on_testnet">টেস্টনেট চালু থাকলে Nextcloud বন্ধ থাকে।</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">মেসেজ পাঠানোর জন্য Kaspa যোগ করার QR কোড দেখায়।</string>
     <string name="chats_receive_subtitle">পেমেন্ট পেতে একটি নতুন ঠিকানা দেখায়।</string>
     <string name="qr_receive_address_subtitle">একটি নতুন ঠিকানা, আগে কখনও ব্যবহার হয়নি। এখানে পাঠানো Kaspa এই অ্যাকাউন্টে আসে এবং আপনার খরচযোগ্য ব্যালান্সে দেখায়। চ্যাট বা ডোমেইনের সাথে সম্পর্কহীন সবকিছুর জন্য এই ঠিকানা ব্যবহার করুন।</string>
-    <string name="qr_chatting_address_subtitle">এই ঠিকানাটি শুধু চ্যাট ও ডোমেইনের জন্য। 1 Kaspa দিয়ে অ্যাপে প্রায় 500টি কাজ করা যায়। নাম অনুযায়ী ডোমেইনের দাম 35 থেকে 4,000 Kaspa।</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">কয়েন কন্ট্রোল</string>
     <string name="automatic">স্বয়ংক্রিয়</string>

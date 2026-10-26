@@ -34,7 +34,6 @@
     <string name="change">बदलें</string>
     <string name="changenow_exchange_id">ChangeNOW एक्सचेंज आईडी</string>
     <string name="chats">चैट</string>
-    <string name="chatting_address">चैट पता</string>
     <string name="chatting_address_2">चैट पता</string>
     <string name="check_again">फिर से जांचें</string>
     <string name="checking_availability">उपलब्धता की जाँच की जा रही है...</string>
@@ -577,8 +576,6 @@
     <string name="welcome_fund_chatting_body">शुरुआत के लिए 50 Kaspa की सलाह दी जाती है - इतना कि एक .kachat नाम ले सकें और कुछ समय चैट कर सकें। 5 Kaspa लगभग 2500 मैसेज के लिए काफ़ी हैं।</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">टेस्टनेट</string>
-    <string name="testnet_restart_to_testnet">टेस्टनेट पर स्विच पूरा करने के लिए KaChat को पूरी तरह बंद करके फिर खोलें।</string>
-    <string name="testnet_restart_to_mainnet">मेननेट पर वापस जाने के लिए KaChat को पूरी तरह बंद करके फिर खोलें।</string>
     <string name="kaposts_not_on_testnet">KaPosts अभी टेस्टनेट पर उपलब्ध नहीं है</string>
     <string name="kaposts_not_on_testnet_sub">टेस्टनेट के लिए कोई KaPost इंडेक्सर नहीं है। मेननेट पर पढ़ने और पोस्ट करने के लिए सेटिंग्स > कनेक्शन में टेस्टनेट बंद करें।</string>
     <string name="nextcloud_off_on_testnet">टेस्टनेट चालू रहने तक Nextcloud बंद है।</string>
@@ -823,7 +820,6 @@
     <string name="chats_fund_subtitle">मैसेज भेजने के लिए Kaspa जोड़ने का QR कोड दिखाता है।</string>
     <string name="chats_receive_subtitle">भुगतान पाने के लिए नया पता दिखाता है।</string>
     <string name="qr_receive_address_subtitle">एक नया पता, जो पहले कभी इस्तेमाल नहीं हुआ। यहाँ भेजे गए Kaspa इस खाते में आते हैं और आपके खर्च बैलेंस में दिखते हैं। चैट या डोमेन से असंबंधित हर चीज़ के लिए यही पता इस्तेमाल करें।</string>
-    <string name="qr_chatting_address_subtitle">यह पता केवल चैट और डोमेन के लिए है। 1 Kaspa ऐप में लगभग 500 इंटरैक्शन के लिए काफ़ी है। नाम के हिसाब से डोमेन की कीमत 35 से 4,000 Kaspa तक है।</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="coin_control">कॉइन कंट्रोल</string>
     <string name="automatic">स्वचालित</string>

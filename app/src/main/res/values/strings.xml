@@ -125,7 +125,7 @@
     <string name="broadcast_indexer_footer">KaChat public chat history indexer for #kaspa and #kachat-bugs</string>
     <string name="kapost_indexer_footer">K social network indexer that powers KaPosts feeds</string>
     <string name="coinbase">Coinbase</string>
-    <string name="chatting_address">Chatting Address</string>
+    <string name="chatting_address">Your Address</string>
     <string name="chatting_address_2">Chatting address</string>
     <string name="check_again">Check Again</string>
     <string name="checking_availability">Checking availability...</string>
@@ -751,8 +751,8 @@
     <string name="welcome_fund_chatting_body">50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">Testnet</string>
-    <string name="testnet_restart_to_testnet">Close KaChat completely and open it again to finish switching to Testnet.</string>
-    <string name="testnet_restart_to_mainnet">Close KaChat completely and open it again to finish switching back to Mainnet.</string>
+    <string name="testnet_restart_to_testnet">Close KaChat Chess completely and open it again to finish switching to Testnet.</string>
+    <string name="testnet_restart_to_mainnet">Close KaChat Chess completely and open it again to finish switching back to Mainnet.</string>
     <string name="kaposts_not_on_testnet">KaPosts isn\'t available on Testnet yet</string>
     <string name="kaposts_not_on_testnet_sub">There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet.</string>
     <string name="nextcloud_off_on_testnet">Nextcloud is off while Testnet is on.</string>
@@ -996,7 +996,7 @@
     <string name="chats_fund_subtitle">Show the QR code to add Kaspa for sending messages.</string>
     <string name="chats_receive_subtitle">Show a fresh address to get paid.</string>
     <string name="qr_receive_address_subtitle">A fresh address, never used before. Kaspa sent here lands in this account and shows in your spending total. This address should be used for everything not related to chatting or domains.</string>
-    <string name="qr_chatting_address_subtitle">This address should be for chatting and domains only. 1 Kaspa is enough for about 500 interactions in the app. Domains cost from 35 to 4,000 Kaspa, depending on the name.</string>
+    <string name="qr_chatting_address_subtitle">Every move you play is a Kaspa transaction from this address, about 0.0017 KAS each: 1 KAS covers about 500 moves.</string>
     <!-- Send Kaspa screens: shared pieces (iOS 4d0324f) -->
     <string name="fee_tier_normal">Normal</string>
     <string name="fee_tier_fast">Fast</string>
