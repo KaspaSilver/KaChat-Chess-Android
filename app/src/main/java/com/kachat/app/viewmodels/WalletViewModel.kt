@@ -132,8 +132,13 @@ class WalletViewModel @Inject constructor(
         onboardingGate.hold()
     }
 
+    /**
+     * KaChat Chess has no welcome guide to wait for: the shell takes the signal the moment it is
+     * up and lifts the hold, or nothing would sync (iOS ChessMainTabView's onAppear).
+     */
     fun consumePendingWelcomeGuide() {
         _pendingWelcomeGuide.value = false
+        if (onboardingGate.isHeld) onboardingGate.release()
     }
 
     private val _address = MutableStateFlow<String?>(null)

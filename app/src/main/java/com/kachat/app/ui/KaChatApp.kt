@@ -84,6 +84,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 
 /**
  * Top-level navigation destinations.
@@ -97,6 +99,11 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     val usesKaspaLogo: Boolean get() = this is KaspaHub
 
     object Settings    : Screen("settings",     "Settings",     Icons.Default.Settings)
+    // KaChat Chess's dock (ChessMainShell): Play, Leaderboard, Wallet, Settings - fixed, nothing
+    // to rearrange (iOS ChessMainTabView).
+    object Play        : Screen("play",         "Play",         com.kachat.app.ui.theme.IosSymbols.CheckerboardRectangle)
+    object Leaderboard : Screen("leaderboard",  "Leaderboard",  Icons.Default.EmojiEvents)
+    object Wallet      : Screen("wallet",       "Wallet",       Icons.Default.AccountBalanceWallet)
     object Chats       : Screen("chats",        "Chats",        Icons.Default.Forum)
     object Portfolio   : Screen("portfolio",    "Portfolio",    Icons.Default.PieChart)
     object Profile     : Screen("profile",      "Profile",      Icons.Default.AccountCircle)
@@ -412,21 +419,7 @@ fun KaChatApp(
     } else if (!isLoggedIn || mnemonic != null) {
         OnboardingScreen(walletViewModel)
     } else {
-        MainShell(
-            walletViewModel = walletViewModel,
-            pendingContactId = pendingContactId,
-            onPendingContactHandled = onPendingContactHandled,
-            pendingChannelName = pendingChannelName,
-            onPendingChannelHandled = onPendingChannelHandled,
-            pendingGroupId = pendingGroupId,
-            onPendingGroupHandled = onPendingGroupHandled,
-            pendingOpenGroups = pendingOpenGroups,
-            onPendingOpenGroupsHandled = onPendingOpenGroupsHandled,
-            pendingWalletActivityKind = pendingWalletActivityKind,
-            onPendingWalletActivityHandled = onPendingWalletActivityHandled,
-            pendingOwnAddress = pendingOwnAddress,
-            onPendingOwnAddressHandled = onPendingOwnAddressHandled
-        )
+        ChessMainShell(walletViewModel = walletViewModel)
     }
 }
 

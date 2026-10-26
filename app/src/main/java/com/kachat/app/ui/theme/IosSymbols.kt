@@ -91,4 +91,32 @@ object IosSymbols {
             fill = SolidColor(Color.Black),
         ).build()
     }
+
+    /**
+     * "checkerboard.rectangle", the Play tab's symbol: a rounded rectangle outline with a
+     * checkerboard inside it - one even-odd path, so the ring and the dark squares fill and
+     * everything between them stays clear.
+     */
+    val CheckerboardRectangle: ImageVector by lazy {
+        ImageVector.Builder(
+            name = "CheckerboardRectangle",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+        ).addPath(
+            pathData = addPathNodes(
+                "M5,4.5H19a3,3 0 0,1 3,3V16.5a3,3 0 0,1 -3,3H5a3,3 0 0,1 -3,-3V7.5a3,3 0 0,1 3,-3z" +
+                    "M5.2,6.1H18.8a1.6,1.6 0 0,1 1.6,1.6V16.3a1.6,1.6 0 0,1 -1.6,1.6H5.2a1.6,1.6 0 0,1 -1.6,-1.6V7.7a1.6,1.6 0 0,1 1.6,-1.6z" +
+                    "M4.8,7.3h3.6v3.133h-3.6z" +
+                    "M12,7.3h3.6v3.133h-3.6z" +
+                    "M8.4,10.433h3.6v3.134h-3.6z" +
+                    "M15.6,10.433h3.6v3.134h-3.6z" +
+                    "M4.8,13.567h3.6v3.133h-3.6z" +
+                    "M12,13.567h3.6v3.133h-3.6z"
+            ),
+            pathFillType = PathFillType.EvenOdd,
+            fill = SolidColor(Color.Black),
+        ).build()
+    }
 }

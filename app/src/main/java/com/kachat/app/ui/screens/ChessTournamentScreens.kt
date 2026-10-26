@@ -125,7 +125,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Kaspa Hub > Chess (5.1): the lobby, one tournament, one game, and the leaderboard. Mirrors
+// Play (5.1): the lobby, one tournament, one game, and the leaderboard. Mirrors
 // iOS's Views/Chess. Every screen holds ChessTournamentService.acquire() while it is up, so the
 // arena is scanned exactly as long as someone is looking at chess.
 
@@ -169,7 +169,7 @@ class ChessTournamentViewModel @Inject constructor(
  * The app's naming rule, in the arena too: the contact's name, then their KNS domain, then the
  * shortened address - and the same for the player themselves, never "You" (iOS 30d0cca).
  */
-private fun chessName(
+internal fun chessName(
     address: String,
     contacts: Map<String, ContactEntity>,
     knsNames: Map<String, String> = emptyMap(),
@@ -180,7 +180,7 @@ private fun chessName(
 }
 
 @Composable
-private fun ChessAvatar(address: String, contacts: Map<String, ContactEntity>, size: Int = 36) {
+internal fun ChessAvatar(address: String, contacts: Map<String, ContactEntity>, size: Int = 36) {
     val contact = contacts[address]
     ContactAvatar(
         imageUrl = contact?.knsAvatarUrl,
@@ -194,7 +194,7 @@ private fun ChessAvatar(address: String, contacts: Map<String, ContactEntity>, s
 
 /** Holds the arena scan for as long as the calling screen is composed. */
 @Composable
-private fun HoldArena(service: ChessTournamentService) {
+internal fun HoldArena(service: ChessTournamentService) {
     DisposableEffect(Unit) {
         service.acquire()
         onDispose { service.release() }
@@ -244,9 +244,9 @@ private fun clockText(ms: Long): String {
 enum class ChessLobbyMode(val label: String) { DUEL("1v1"), TOURNAMENT("Tournaments") }
 
 /**
- * Chess Online > 1v1 or Tournaments: one kind of game per screen, chosen on [ChessHomeScreen].
- * Two tabs: the play tab (a public room that pairs the next joiners or fills to eight, plus
- * private games by code) and that kind's leaderboard. Mirrors iOS's ChessTournamentsView.
+ * Play > 1v1 or Tournaments: one kind of game per screen, chosen on [ChessHomeScreen]. Tabs: the
+ * play tab (a public room that pairs the next joiners or fills to eight, plus private games by
+ * code), Active and Finished. Mirrors iOS's ChessTournamentsView.
  */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -319,8 +319,9 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
     ) { padding ->
         // The same tab bar and swipe the Chats screen uses, so a tab is a tab wherever it
         // appears in the app (iOS 353f040).
-        // Both screens: play, Active (watch-only), Finished, Leaderboard (iOS 01f1c12, 8afa81a).
-        val tabs = listOf(mode.label, "Active", "Finished", "Leaderboard")
+        // Both screens: play, Active (watch-only), Finished. The leaderboards have a tab of their
+        // own in the dock (ChessLeaderboardTabScreen).
+        val tabs = listOf(mode.label, "Active", "Finished")
         val pagerState = androidx.compose.foundation.pager.rememberPagerState { tabs.size }
         val tabScope = rememberCoroutineScope()
         Column(Modifier.fillMaxSize().padding(padding)) {
@@ -345,7 +346,6 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
             when (page) {
                 1 -> { ChessActiveGames(mode, navController); return@HorizontalPager }
                 2 -> { ChessFinishedGames(mode, navController); return@HorizontalPager }
-                3 -> { ChessLeaderboardRows(mode, navController); return@HorizontalPager }
             }
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = LocalDockInset.current + 32.dp)) {
                 val duel = mode == ChessLobbyMode.DUEL
@@ -1083,14 +1083,14 @@ private fun ChessBracketPlaceholderRow(text: String, height: Dp) {
 }
 
 /**
- * One kind's leaderboard, as the second tab of its screen: 1v1 is wins and losses in 1v1 games;
+ * One kind's leaderboard, under the Leaderboard tab's 1v1 | Tournaments bar: 1v1 is wins and losses in 1v1 games;
  * Tournaments is whole tournaments only - won (champion) and lost (knocked out); a game won
  * inside a tournament is not a score there (iOS e86868e, 7049e70). For this UTC month or all
  * time: the indexer's boards (ONLINE_CHESS.md §6) merged with what the phone has read; both count
  * from [com.kachat.app.util.ChessTournamentEngine.LEADERBOARD_FRESH_FROM_MS] (iOS 77d6038).
  */
 @Composable
-private fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavController? = null) {
+internal fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavController? = null) {
     val vm: ChessTournamentViewModel = hiltViewModel()
     val service = vm.service
     val colors = LocalAppColors.current
@@ -1173,11 +1173,10 @@ private fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavControl
             Row(
                 Modifier
                     .fillMaxWidth()
-                    // Tap anyone for their User Info - the sheet a public chat opens from an
-                    // avatar's View Profile (iOS 035f2fa).
+                    // Tap anyone for their card (ChessPlayerScreen).
                     .then(
                         if (navController == null) Modifier else Modifier.clickable {
-                            vm.openPlayerProfile(row.address) { navController.navigate("chat_info/$it") }
+                            navController.navigate("chess_player/${row.address}")
                         }
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -1212,9 +1211,8 @@ private fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavControl
 }
 
 /**
- * Kaspa Hub > Chess Online: choose your game. 1v1 or a tournament, each its own screen with that
- * kind's play tab and leaderboard. A room the player is already waiting or playing in is offered
- * first. Mirrors iOS's ChessHomeView.
+ * The Play tab: choose your game. 1v1 or a tournament, each its own screen. A room the player is
+ * already waiting or playing in is offered first. Mirrors iOS's ChessHomeView.
  */
 @Composable
 fun ChessHomeScreen(navController: NavController, onBack: (() -> Unit)? = null) {
@@ -1302,12 +1300,12 @@ fun ChessHomeScreen(navController: NavController, onBack: (() -> Unit)? = null) 
 }
 
 /**
- * Chess Online's bar. iOS gives this page an INLINE title whose place the balance takes (the
- * principal item), so what shows is only the connection dot and the balance - no large
- * "Chess Online" under the bar. MainPageHeader's bar row without its title.
+ * The Play tab's bar, and the Leaderboard tab's. iOS gives these pages an INLINE title whose
+ * place the balance takes (the principal item), so what shows is only the connection dot and the
+ * balance - no large title under the bar. MainPageHeader's bar row without its title.
  */
 @Composable
-private fun ChessHomeBar(onBack: (() -> Unit)?) {
+internal fun ChessHomeBar(onBack: (() -> Unit)?) {
     val colors = LocalAppColors.current
     Row(
         modifier = Modifier
@@ -2046,12 +2044,15 @@ private fun ChessGameResultScreen(
     fun losses(row: com.kachat.app.util.ChessLeaderboardRow?) = if (isDuel) row?.losses ?: 0 else row?.tournamentsLost ?: 0
     // The figures start where they stood and settle on the new ones a beat later.
     var revealed by remember { mutableStateOf(false) }
+    /** A tapped leaderboard row, for that player's card (ChessPlayerScreen), over this screen. */
+    var profileAddress by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { kotlinx.coroutines.delay(500); revealed = true }
 
     Dialog(
         onDismissRequest = onDone,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
     ) {
+        Box(Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = colors.background,
             topBar = {
@@ -2135,6 +2136,7 @@ private fun ChessGameResultScreen(
                     Row(
                         Modifier.fillMaxWidth()
                             .background(if (row.address == me) KaspaTeal.copy(alpha = 0.12f) else Color.Transparent)
+                            .clickable { profileAddress = row.address }
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -2160,6 +2162,10 @@ private fun ChessGameResultScreen(
                     }
                 }
             }
+        }
+        profileAddress?.let { address ->
+            ChessPlayerScreen(address = address, onDone = { profileAddress = null })
+        }
         }
     }
 }
@@ -2598,9 +2604,9 @@ fun ChessTournamentGameScreen(tournamentId: String, gameId: String, navControlle
                 // The whole way out in one animation: a bracket and the board can both sit above
                 // the 1v1 / Tournaments screen, and Done means that screen, not one level back.
                 // A game opened from a link or a notification has no such screen behind it, so
-                // Chess Online's home is the fallback, then plain back (iOS 1a26ba0's popToRoot).
+                // the Play tab is the fallback, then plain back (iOS 1a26ba0's popToRoot).
                 if (!navController.popBackStack("chess_mode/{mode}", inclusive = false) &&
-                    !navController.popBackStack("chess", inclusive = false)
+                    !navController.popBackStack(com.kachat.app.ui.Screen.Play.route, inclusive = false)
                 ) {
                     navController.popBackStack()
                 }

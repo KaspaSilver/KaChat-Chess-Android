@@ -7101,7 +7101,8 @@ fun SpendingAddressTxHistoryScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IdentityAddressDetailScreen(
-    onBack: () -> Unit,
+    /** Null on the Wallet tab, which is not pushed into: the connection dot takes its place. */
+    onBack: (() -> Unit)?,
     viewModel: WalletViewModel,
     portfolioViewModel: com.kachat.app.viewmodels.PortfolioViewModel = hiltViewModel(),
     /** Message on a .kachat name's owner, from its detail. */
@@ -7109,6 +7110,7 @@ fun IdentityAddressDetailScreen(
     /** Opened as the root of the "Received" History sheet (iOS 13046ad `OwnAddressHistorySheet`):
      *  Done closes it, top left, in place of the back arrow. */
     closesWithDone: Boolean = false,
+    title: String = "Chatting Address",
 ) {
     val address by viewModel.address.collectAsState()
     val balanceSompi by viewModel.balanceSompi.collectAsState()
@@ -7231,11 +7233,14 @@ fun IdentityAddressDetailScreen(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Chatting Address", color = LocalAppColors.current.textPrimary, fontWeight = FontWeight.Bold) },
+                title = { Text(title, color = LocalAppColors.current.textPrimary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     // At the root of the "Received" History sheet: Done, as iOS's
                     // OwnAddressHistorySheet puts it (13046ad); a back arrow everywhere else.
-                    if (closesWithDone) {
+                    if (onBack == null) {
+                        // The Wallet tab (iOS ChessWalletView): the connection dot, leading.
+                        ConnectionDotButton(onClick = { ConnectionStatusOverlayState.open() }, modifier = Modifier.padding(start = 12.dp))
+                    } else if (closesWithDone) {
                         SheetBarButton(stringResource(R.string.done), onClick = onBack, modifier = Modifier.padding(start = 12.dp))
                     } else {
                         SheetBarBackButton(onClick = onBack, modifier = Modifier.padding(start = 12.dp))
@@ -10694,7 +10699,8 @@ fun SettingsFooter(text: String) {
 @Composable
 fun SecuritySettingsItems(
     walletViewModel: WalletViewModel,
-    onNavigateToChildMode: () -> Unit
+    /** Null leaves Child Mode out: KaChat Chess's Security is the three biometric locks alone. */
+    onNavigateToChildMode: (() -> Unit)? = null
 ) {
     val biometricSeedPhraseEnabled by walletViewModel.biometricSeedPhraseEnabled.collectAsState()
     val biometricAccountLoginEnabled by walletViewModel.biometricAccountLoginEnabled.collectAsState()
@@ -10734,6 +10740,7 @@ fun SecuritySettingsItems(
             walletViewModel.setBiometricSpendingKeyEnabled(it)
         },
     )
+    if (onNavigateToChildMode == null) return
     SettingsDivider()
     // Child Mode (matches iOS Settings > Security > Child Mode). NEVER biometric-gated - the
     // whole point is that the device owner (the child) can pass fingerprint/face unlock but
