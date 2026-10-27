@@ -795,6 +795,20 @@ fun IdentityAddressDetailScreen(
             utxoLabels = viewModel.getSpendingUtxoLabels(addr)
         }
     }
+    // The coins moved (a payment in, a move or send out): the UTXOs and History follow the live
+    // balance. The history comes from the indexer, which can be a moment behind the node, so it
+    // is asked again a few seconds later (iOS 7a65fab).
+    var balanceSeen by remember { mutableStateOf<Long?>(null) }
+    LaunchedEffect(balanceSompi) {
+        val addr = address
+        val previous = balanceSeen
+        balanceSeen = balanceSompi
+        if (previous == null || previous == balanceSompi || addr.isNullOrEmpty()) return@LaunchedEffect
+        viewModel.loadSpendingAddressUtxos(addr)
+        viewModel.loadSpendingAddressTxHistory(addr)
+        kotlinx.coroutines.delay(4_000)
+        viewModel.loadSpendingAddressTxHistory(addr)
+    }
 
     val flowAddress = address
     // Send and Compound are sheets over this screen that only Cancel closes, as iOS presents
