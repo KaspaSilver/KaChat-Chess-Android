@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.PlayArrow
@@ -1211,8 +1213,9 @@ internal fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavContro
 }
 
 /**
- * The Play tab: choose your game. 1v1 or a tournament, each its own screen. A room the player is
- * already waiting or playing in is offered first. Mirrors iOS's ChessHomeView.
+ * The Play tab: choose your game. 1v1 or a tournament, each its own screen, or the bots
+ * ([ChessBotsScreen]). A room the player is already waiting or playing in is offered first.
+ * Mirrors iOS's ChessHomeView.
  */
 @Composable
 fun ChessHomeScreen(navController: NavController, onBack: (() -> Unit)? = null) {
@@ -1295,6 +1298,11 @@ fun ChessHomeScreen(navController: NavController, onBack: (() -> Unit)? = null) 
                 title = "Tournament",
                 detail = "Eight players, single elimination: quarterfinals, semifinals, final. Public rooms fill as players arrive; private ones by code.",
             ) { open(ChessLobbyMode.TOURNAMENT) }
+            ChessGameCard(
+                icon = Icons.Default.Memory,
+                title = "Bots",
+                detail = "Five bots, level 1 to 5, from Kaspa Silver to Yonatan Sompolinsky. Beat one to unlock the next. Every move on Kaspa.",
+            ) { navController.navigate("chess_bots") }
         }
     }
 }
@@ -1305,7 +1313,12 @@ fun ChessHomeScreen(navController: NavController, onBack: (() -> Unit)? = null) 
  * balance - no large title under the bar. MainPageHeader's bar row without its title.
  */
 @Composable
-internal fun ChessHomeBar(onBack: (() -> Unit)?) {
+internal fun ChessHomeBar(
+    onBack: (() -> Unit)?,
+    /** iOS puts the connection dot on the dock's root screens only; Bots' pages have none. */
+    showConnectionDot: Boolean = true,
+    trailing: @Composable RowScope.() -> Unit = {},
+) {
     val colors = LocalAppColors.current
     Row(
         modifier = Modifier
@@ -1324,11 +1337,12 @@ internal fun ChessHomeBar(onBack: (() -> Unit)?) {
                     ToolbarIconButton(Icons.Filled.ArrowBackIosNew, "Back", onBack, iconSize = 20.dp, tint = LocalAppColors.current.textPrimary)
                 }
             }
-            ConnectionDotButton(onClick = { ConnectionStatusOverlayState.open() })
+            if (showConnectionDot) ConnectionDotButton(onClick = { ConnectionStatusOverlayState.open() })
         }
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             BalanceTopBarLabel()
         }
+        Row(verticalAlignment = Alignment.CenterVertically, content = trailing)
     }
 }
 

@@ -60,6 +60,8 @@ val CHESS_DOCK_TABS = listOf(Screen.Play, Screen.Leaderboard, Screen.Wallet, Scr
 private val CHESS_DOCKED_ROUTES = CHESS_DOCK_TABS.map { it.route }.toSet() + setOf(
     "chess_mode/{mode}",
     "chess_tournament/{tournamentId}",
+    "chess_bots",
+    "chess_bot/{level}",
     "chess_settings/{page}",
     "connection_settings",
     "kaspa_explorer_settings",
@@ -77,7 +79,9 @@ fun ChessMainShell(walletViewModel: WalletViewModel = hiltViewModel()) {
     val backStack by navController.currentBackStack.collectAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val showDock = currentRoute == null || currentRoute in CHESS_DOCKED_ROUTES
+    // A bot game keeps the dock away only while it is on, as iOS hides the tab bar then.
+    val showDock = currentRoute == null || currentRoute in CHESS_DOCKED_ROUTES ||
+        (currentRoute == "chess_bot_game/{level}/{side}" && !ChessBotGameDock.lockedIn)
 
     // What KaChat's dock did on appearing (iOS ChessMainTabView's onAppear): a hold left from
     // onboarding is lifted, or nothing would start. There is no welcome guide to lift it.
@@ -174,6 +178,24 @@ private fun androidx.navigation.NavGraphBuilder.chessGraph(
             entry.arguments?.getString("gameId").orEmpty(),
             navController,
         )
+    }
+    // Play > Bots: the ladder, one bot, a game against it (iOS ChessBotsView, c3c04a1).
+    composable("chess_bots") {
+        CompositionLocalProvider(LocalDockInset provides dockInset) { ChessBotsScreen(navController) }
+    }
+    composable("chess_bot/{level}") { entry ->
+        CompositionLocalProvider(LocalDockInset provides dockInset) {
+            ChessBotDetailScreen(entry.arguments?.getString("level")?.toIntOrNull() ?: 1, navController)
+        }
+    }
+    composable("chess_bot_game/{level}/{side}") { entry ->
+        CompositionLocalProvider(LocalDockInset provides if (ChessBotGameDock.lockedIn) 0.dp else dockInset) {
+            ChessBotGameScreen(
+                entry.arguments?.getString("level")?.toIntOrNull() ?: 1,
+                entry.arguments?.getString("side").orEmpty(),
+                navController,
+            )
+        }
     }
     // A tapped player, for their card (iOS ChessPlayerView, a sheet with Done).
     composable("chess_player/{address}") { entry ->
