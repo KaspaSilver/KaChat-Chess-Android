@@ -1582,10 +1582,22 @@ private fun AddressHistoryList(
         txHistory.isEmpty() -> InsetGroupedSingleRowList {
             Text(stringResource(R.string.no_transactions_yet), color = colors.textSecondary, fontSize = 17.sp)
         }
-        else -> LazyColumn(
+        else -> AddressHistoryRefreshable(isLoading = isLoading, onRefresh = onRetry) {
+        LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = InsetGroupedTopGap, bottom = 16.dp + bottomPadding),
         ) {
+            if (failed) {
+                // Some pages landed, some did not: say so rather than letting a truncated list
+                // read as the whole history (iOS WalletViews).
+                item(key = "incomplete") {
+                    Text(
+                        "Some transactions could not be loaded. Pull to refresh to try again.",
+                        color = colors.warning, fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 6.dp),
+                    )
+                }
+            }
             itemsIndexed(txHistory, key = { _, tx -> tx.txId }) { i, tx ->
                 SpendingAddressTxHistoryRow(
                     tx = tx,
@@ -1598,6 +1610,29 @@ private fun AddressHistoryList(
                 )
             }
         }
+        }
+    }
+}
+
+/** Pull to refresh over the history, as iOS's `.refreshable` list: the spinner stays until the
+ *  reload it started has finished. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddressHistoryRefreshable(isLoading: Boolean, onRefresh: () -> Unit, content: @Composable () -> Unit) {
+    val state = rememberPullToRefreshState()
+    val loading by rememberUpdatedState(isLoading)
+    if (state.isRefreshing) {
+        LaunchedEffect(Unit) {
+            onRefresh()
+            // Give the reload a moment to start, then hold the spinner until it is done.
+            kotlinx.coroutines.delay(400)
+            while (loading) kotlinx.coroutines.delay(100)
+            state.endRefresh()
+        }
+    }
+    Box(Modifier.fillMaxSize().nestedScroll(state.nestedScrollConnection)) {
+        content()
+        PullToRefreshContainer(state = state, modifier = Modifier.align(Alignment.TopCenter))
     }
 }
 
@@ -3204,7 +3239,7 @@ private fun AddressBookSection(viewModel: ConnectionViewModel) {
                             )
                         )
                     }) {
-                        Icon(Icons.Default.Delete, null, tint = LocalAppColors.current.textSecondary)
+                        Icon(Icons.Default.Delete, "Delete saved address", tint = LocalAppColors.current.textSecondary)
                     }
                 }
             }

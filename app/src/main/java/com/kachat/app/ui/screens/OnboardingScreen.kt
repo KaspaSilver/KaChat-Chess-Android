@@ -602,9 +602,13 @@ fun SavedAccountCard(
             containerColor = LocalAppColors.current.surface,
             title = { Text(stringResource(R.string.rename_account), color = LocalAppColors.current.textPrimary) },
             text = {
+                // iOS's alert: its message over the field, the field's placeholder "Account name".
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Enter a new name for this saved account.", color = LocalAppColors.current.textSecondary, fontSize = 13.sp)
                 com.kachat.app.ui.theme.IosTextField(
                     value = nameInput,
                     onValueChange = { nameInput = it },
+                    placeholder = { Text("Account name", color = LocalAppColors.current.textTertiary) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = LocalAppColors.current.textPrimary,
@@ -614,6 +618,7 @@ fun SavedAccountCard(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
+                }
             },
             confirmButton = {
                 TextButton(

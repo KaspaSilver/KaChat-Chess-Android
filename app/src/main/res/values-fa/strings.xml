@@ -43,7 +43,6 @@
     <string name="cancel">لغو</string>
     <string name="coin_control">کنترل سکه (Coin Control)</string>
     <string name="compound_utxos">ترکیب UTXOها</string>
-    <string name="compound_utxos_description">ترکیب تمام UTXOهای این آدرس به یک UTXO واحد.</string>
     <string name="cancel_photo">لغو عکس</string>
     <string name="cancel_recording">لغو ضبط</string>
     <string name="cancel_reply">لغو پاسخ</string>
