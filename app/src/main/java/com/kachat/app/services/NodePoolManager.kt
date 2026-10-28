@@ -646,13 +646,18 @@ class NodePoolManager @Inject constructor(
             val conn = discoverFrom?.let { connections[it] }
             if (conn != null) {
                 try {
-                    conn.getPeerAddresses().addressesList.map { it.addr }.forEach { addr ->
-                        if (addr.isNotBlank() && !seeds.contains(addr) && !manualEndpoints.contains(addr) &&
-                            discoveredEndpoints.size < maxDiscoveredEndpoints
-                        ) {
-                            discoveredEndpoints.add(addr)
+                    // Nearer peers first, so the capped list fills with them (iOS NodeProfiler's
+                    // geo prior on candidates; see geoPriority).
+                    val here = devicePlace(registry.snapshot())
+                    conn.getPeerAddresses().addressesList.map { it.addr }
+                        .sortedByDescending { geoPriority(it, here) }
+                        .forEach { addr ->
+                            if (addr.isNotBlank() && !seeds.contains(addr) && !manualEndpoints.contains(addr) &&
+                                discoveredEndpoints.size < maxDiscoveredEndpoints
+                            ) {
+                                discoveredEndpoints.add(addr)
+                            }
                         }
-                    }
                 } catch (e: Exception) {
                     // Ignore — next cycle will retry with whatever's active then.
                     Log.w("NodePoolManager", "Peer-gossip discovery via $discoverFrom failed: ${e.javaClass.simpleName}: ${e.message}")
@@ -679,18 +684,44 @@ class NodePoolManager @Inject constructor(
         return anyReachable
     }
 
+    private fun placeOf(address: String) = geoIp.lookup(com.kachat.app.services.grpc.GeoIpDatabase.hostOf(address))
+
+    /** This device's own place, inferred from the three fastest active nodes the database
+     *  knows - never asked of a lookup service (iOS inferClientGeoFromPoolHints). */
+    private fun devicePlace(records: List<NodeRecord>): Pair<Double, Double>? {
+        val nearest = records
+            .filter { registry.statusOf(it) == "Active" && it.lastProbe?.latencyMs != null }
+            .sortedBy { it.lastProbe?.latencyMs }
+            .mapNotNull { placeOf(it.address) }
+            .take(3)
+        return if (nearest.isEmpty()) null else
+            nearest.sumOf { it.latitude } / nearest.size to nearest.sumOf { it.longitude } / nearest.size
+    }
+
+    private fun distanceKm(address: String, here: Pair<Double, Double>?): Double? {
+        val place = placeOf(address) ?: return null
+        here ?: return null
+        return com.kachat.app.services.grpc.GeoIpDatabase.haversineDistanceKm(here.first, here.second, place.latitude, place.longitude)
+    }
+
+    /**
+     * iOS NodeProfiler's geo prior for a not-yet-probed node, with its weights: the round trip
+     * the distance allows (8 ms + 1 ms per 100 km) at 50 ms or less +8, 180 ms or more -6; under
+     * 2,000 km +6, over 9,000 km -4. A node the database cannot place scores 0.
+     */
+    private fun geoPriority(address: String, here: Pair<Double, Double>?): Int {
+        val km = distanceKm(address, here) ?: return 0
+        val predictedMinRttMs = 8.0 + km / 100.0
+        var priority = 0
+        if (predictedMinRttMs <= 50.0) priority += 8 else if (predictedMinRttMs >= 180.0) priority -= 6
+        if (km < 2_000.0) priority += 6 else if (km > 9_000.0) priority -= 4
+        return priority
+    }
+
     private fun publish() {
         val records = registry.snapshot()
-        val places = records.associate { it.address to geoIp.lookup(com.kachat.app.services.grpc.GeoIpDatabase.hostOf(it.address)) }
-        // This device's own place is inferred from the three fastest active nodes the database
-        // knows, never asked of a lookup service (iOS inferClientGeoFromPoolHints).
-        val nearest = records
-            .filter { registry.statusOf(it) == "Active" && places[it.address] != null && it.lastProbe?.latencyMs != null }
-            .sortedBy { it.lastProbe?.latencyMs }
-            .take(3)
-            .mapNotNull { places[it.address] }
-        val here = if (nearest.isEmpty()) null else
-            nearest.sumOf { it.latitude } / nearest.size to nearest.sumOf { it.longitude } / nearest.size
+        val places = records.associate { it.address to placeOf(it.address) }
+        val here = devicePlace(records)
         val allInfo = records
             .map { record ->
                 val place = places[record.address]
