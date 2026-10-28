@@ -1,80 +1,66 @@
-"""Android vector drawables for the KaChat Chess icon - the iOS design/app-icon/make_chess_icon.py
-light artwork (KaChat-Chess-iPhone 17ae537), shape for shape. Run from the repo root:
+"""Android vector drawables for the KaPlay icon - the iOS design/app-icon/make_chess_icon.py artwork
+(KaChat-Chess-iPhone 1d23002), shape for shape. Run from the repo root:
 python3 scripts/make_app_icon.py app/src/main/res
 Writes drawable/ic_launcher_foreground.xml (the adaptive icon's foreground; the background is
-@color/ic_launcher_background, white) and drawable/kachat_chess_app_mark.xml (the sign-in
-screen's logo, iOS KaChatChessLogo)."""
+@color/ic_launcher_background, white), drawable/kachat_chess_app_mark.xml (the sign-in screen's
+logo, iOS KaChatChessLogo) and drawable-night/kachat_chess_app_mark.xml (its dark-mode version,
+iOS KaChatChessLogo-dark)."""
 import os
 import sys
 
 res = sys.argv[1]
 
-# The king, in the SVG's own path syntax (Android's pathData reads it as is).
-KING = ("M482 88 h60 a10 10 0 0 1 10 10 v46 h46 a10 10 0 0 1 10 10 v44 a10 10 0 0 1 -10 10 h-46 v34 "
-        "C660 252 704 282 690 330 C680 366 652 382 640 392 L640 420 L612 420 C614 560 652 690 724 760 "
-        "L760 760 a14 14 0 0 1 14 14 v42 a14 14 0 0 1 -14 14 L264 830 a14 14 0 0 1 -14 -14 v-42 "
-        "a14 14 0 0 1 14 -14 L300 760 C372 690 410 560 412 420 L384 420 L384 392 C372 382 344 366 334 330 "
-        "C320 282 364 252 472 242 v-34 h-46 a10 10 0 0 1 -10 -10 v-44 a10 10 0 0 1 10 -10 h46 v-46 "
-        "a10 10 0 0 1 10 -10 Z")
+# The controller's body, in the SVG's own path syntax (Android's pathData reads it as is).
+BODY = ("M330 300 L694 300 C800 300 858 336 880 412 C910 512 932 640 924 728 C916 806 836 832 786 784 "
+        "C748 748 722 696 682 672 C604 652 420 652 342 672 C302 696 276 748 238 784 C188 832 108 806 "
+        "100 728 C92 640 114 512 144 412 C166 336 224 300 330 300 Z")
+
+LIGHT = {"background": "FFFFFF", "cut": "FFFFFF", "shadow": 0.18}
+DARK = {"background": "1B2029", "cut": "1B2029", "shadow": 0.45}
 
 
-def fade(x):
-    """The SVG's horizontal mask over the board strip: clear at the edges, full from 30% to 70%."""
-    t = x / 1024
-    if t < 0.3:
-        return t / 0.3
-    if t > 0.7:
-        return (1 - t) / 0.3
-    return 1.0
+def rrect(x, y, w, h, r):
+    return (f"M{x + r},{y} h{w - 2 * r} a{r},{r} 0 0 1 {r},{r} v{h - 2 * r} a{r},{r} 0 0 1 -{r},{r} "
+            f"h-{w - 2 * r} a{r},{r} 0 0 1 -{r},-{r} v-{h - 2 * r} a{r},{r} 0 0 1 {r},-{r} z")
+
+
+def circle(cx, cy, r):
+    return f"M{cx - r},{cy} a{r},{r} 0 1,0 {2 * r},0 a{r},{r} 0 1,0 -{2 * r},0 z"
 
 
 def argb(hex_rgb, alpha):
     return f"#{round(alpha * 255):02X}{hex_rgb}"
 
 
-def board_strip():
-    """Eight squares on the bottom edge, each faded by the mask (vector drawables have no masks,
-    so each square carries its own slice of the fade as a gradient)."""
-    out = []
-    for i in range(8):
-        x = 96 + 104 * i
-        color = "D3EFE9" if i % 2 == 0 else "A6DDD3"
-        stops = [(0.0, fade(x)), (0.5, fade(x + 52)), (1.0, fade(x + 104))]
-        items = "\n".join(
-            f'                <item android:offset="{o}" android:color="{argb(color, a)}"/>' for o, a in stops
-        )
-        out.append(f'''<path android:pathData="M{x},812 h104 v104 h-104 z">
-        <aapt:attr name="android:fillColor">
-            <gradient android:type="linear" android:startX="{x}" android:startY="0" android:endX="{x + 104}" android:endY="0">
-{items}
-            </gradient>
-        </aapt:attr>
-    </path>''')
-    return out
-
-
-def art(include_bg):
+def art(theme, include_bg):
+    cut = f"#{theme['cut']}"
     p = []
     if include_bg:
-        p.append('<path android:fillColor="#FFFFFF" android:pathData="M0,0 h1024 v1024 h-1024 z"/>')
-    p.extend(board_strip())
-    # The SVG's soft drop shadow (dy 14, 18 blur, 18%), as faint offset layers: vector drawables
-    # have no blur.
-    p.append(f'<group android:translateY="16"><path android:fillColor="#0C000000" android:pathData="{KING}"/></group>')
-    p.append(f'<group android:translateY="10"><path android:fillColor="#12000000" android:pathData="{KING}"/></group>')
-    p.append(f'''<path android:pathData="{KING}">
+        p.append(f'<path android:fillColor="#{theme["background"]}" android:pathData="M0,0 h1024 v1024 h-1024 z"/>')
+    # Everything sits 54 higher, as the SVG's translate(0 -54).
+    p.append('<group android:translateY="-54">')
+    # The SVG's soft drop shadow (dy 14, 18 blur), as faint offset layers: vector drawables have
+    # no blur.
+    p.append(f'<group android:translateY="16"><path android:fillColor="{argb("000000", theme["shadow"] * 0.4)}" android:pathData="{BODY}"/></group>')
+    p.append(f'<group android:translateY="10"><path android:fillColor="{argb("000000", theme["shadow"] * 0.6)}" android:pathData="{BODY}"/></group>')
+    p.append(f'''<path android:pathData="{BODY}">
         <aapt:attr name="android:fillColor">
-            <gradient android:type="linear" android:startX="0" android:startY="88" android:endX="0" android:endY="830">
+            <gradient android:type="linear" android:startX="0" android:startY="300" android:endX="0" android:endY="818">
                 <item android:offset="0" android:color="#FF8AD6C9"/>
                 <item android:offset="1" android:color="#FF5BBDAC"/>
             </gradient>
         </aapt:attr>
     </path>''')
-    # The backward K (the Kaspa mark), cut into the body in white.
-    p.append('''<group android:translateX="409" android:translateY="488" android:scaleX="2.2" android:scaleY="2.2">
-        <path android:strokeColor="#FFFFFF" android:strokeWidth="17" android:strokeMiterLimit="4" android:strokeLineJoin="miter" android:pathData="M8,15 L61,50 L8,85"/>
-        <path android:fillColor="#FFFFFF" android:pathData="M60,-3 L77,-5 L80,50 L74,105 L56,103 L58,50 Z"/>
+    # The D-pad and the four buttons, cut out in the background colour.
+    p.append(f'<path android:fillColor="{cut}" android:pathData="{rrect(196, 448, 132, 44, 12)} {rrect(240, 404, 44, 132, 12)}"/>')
+    buttons = " ".join(circle(cx, cy, 23) for cx, cy in ((762, 422), (810, 470), (762, 518), (714, 470)))
+    p.append(f'<path android:fillColor="{cut}" android:pathData="{buttons}"/>')
+    # The backward K (the Kaspa mark) in the middle.
+    p.append(f'''<group android:translateX="433.2" android:translateY="390.5" android:scaleX="1.75" android:scaleY="1.75">
+        <path android:strokeColor="{cut}" android:strokeWidth="17" android:strokeMiterLimit="4" android:strokeLineJoin="miter" android:pathData="M8,15 L61,50 L8,85"/>
+        <path android:fillColor="{cut}" android:pathData="M60,-3 L77,-5 L80,50 L74,105 L56,103 L58,50 Z"/>
     </group>''')
+    p.append('</group>')
     return "\n        ".join(p)
 
 
@@ -92,15 +78,24 @@ HEADER = '''<?xml version="1.0" encoding="utf-8"?>
 </vector>
 '''
 
+
+def write(path, **fields):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        f.write(HEADER.format(**fields))
+
+
 # Adaptive foreground: a 108dp layer whose middle 72dp shows, so the 1024 artwork sits in the
 # middle two thirds of a 1536 viewport.
-with open(os.path.join(res, "drawable", "ic_launcher_foreground.xml"), "w") as f:
-    f.write(HEADER.format(
-        comment="KaChat Chess launcher icon, foreground layer: the iOS app icon (design/app-icon in KaChat-Chess-iPhone) - a teal king with the Kaspa K, on a strip of board. Generated by scripts/make_app_icon.py.",
-        size=108, vp=1536, off=256, body=art(False)))
+write(os.path.join(res, "drawable", "ic_launcher_foreground.xml"),
+      comment="KaPlay launcher icon, foreground layer: the iOS app icon (design/app-icon in KaChat-Chess-iPhone) - a teal game controller with the Kaspa K, a D-pad and four buttons. Generated by scripts/make_app_icon.py.",
+      size=108, vp=1536, off=256, body=art(LIGHT, False))
 # The sign-in screen's logo (iOS KaChatChessLogo): the whole square icon, background included.
-with open(os.path.join(res, "drawable", "kachat_chess_app_mark.xml"), "w") as f:
-    f.write(HEADER.format(
-        comment="KaChat Chess icon as one square picture, for the sign-in screen (iOS KaChatChessLogo). Generated by scripts/make_app_icon.py.",
-        size=120, vp=1024, off=0, body=art(True)))
+write(os.path.join(res, "drawable", "kachat_chess_app_mark.xml"),
+      comment="KaPlay icon as one square picture, for the sign-in screen (iOS KaChatChessLogo). Generated by scripts/make_app_icon.py.",
+      size=120, vp=1024, off=0, body=art(LIGHT, True))
+# Its dark-mode version (iOS KaChatChessLogo-dark).
+write(os.path.join(res, "drawable-night", "kachat_chess_app_mark.xml"),
+      comment="KaPlay icon as one square picture, dark mode (iOS KaChatChessLogo-dark). Generated by scripts/make_app_icon.py.",
+      size=120, vp=1024, off=0, body=art(DARK, True))
 print("written")

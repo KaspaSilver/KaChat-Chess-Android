@@ -297,7 +297,6 @@
     <string name="kaspa_node">Kaspa Dugumu</string>
     <string name="last_sync">Son Senkronizasyon</string>
     <string name="latency">Gecikme</string>
-    <string name="message_indexer_service_for_chat_functionality">Sohbet işlevi için mesaj dizinleme servisi</string>
     <string name="open_chat">Sohbeti Ac</string>
     <string name="play_chess">Satranc Oyna</string>
     <string name="play_sound">Ses çal</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">Bir adres veya alan adı girin.</string>
     <string name="kn_err_name_address_cant_own">Bu adın adresi bir .kachat adına sahip olamaz.</string>
     <string name="kn_err_no_domain_by_name">Bu adla bir alan adı bulunamadı.</string>
-    <string name="kachat_names_resolved_first_footer">Adres girebildiğiniz her yerde önce çözümlenir.</string>
     <string name="other_domains_title">Diğer Alan Adları</string>
     <string name="other_domains_settings_footer">.kachat\'tan sonra aranır; yazılan ad orada da varsa Diğer alan adları altında listelenir.</string>
     <string name="chatting_picker_intro_any_name_kachat">Bu seed kimliğinizi zaten başka bir adreste tutuyorsa (bir alan adı .kachat, .kas, .k veya .kaspa ya da bakiyeli bir sohbet adresi), burada seçin. Yalnızca bakiyesi veya alan adı olan adresler gösterilir.</string>

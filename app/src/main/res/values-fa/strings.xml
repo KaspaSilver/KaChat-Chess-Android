@@ -334,7 +334,6 @@
     <string name="kaspa_node_quick_access_footer">اسکن خودکار بهترین گره‌های موجود را پیدا کرده و به آن‌ها متصل می‌شود. با انتخاب یک گره خاص، اتصال فقط به همان گره انجام شده و از گره‌های جایگزین استفاده نمی‌شود. آدرس‌های ذخیره‌شده را در تنظیمات اتصال &gt; دفترچه آدرس IP مدیریت کنید.</string>
     <string name="last_sync">آخرین همگام‌سازی</string>
     <string name="latency">تاخیر</string>
-    <string name="message_indexer_service_for_chat_functionality">سرویس ایندکس پیام برای عملکرد گفتگو</string>
     <string name="open_chat">باز کردن گفتگو</string>
     <string name="play_chess">بازی شطرنج</string>
     <string name="play_sound">پخش صدا</string>
@@ -1199,7 +1198,6 @@
     <string name="kn_err_enter_address_or_domain">یک نشانی یا دامنه وارد کنید.</string>
     <string name="kn_err_name_address_cant_own">نشانی این نام نمی‌تواند مالک یک نام .kachat باشد.</string>
     <string name="kn_err_no_domain_by_name">دامنه‌ای با این نام پیدا نشد.</string>
-    <string name="kachat_names_resolved_first_footer">هرجا که بتوانید نشانی وارد کنید، ابتدا این‌ها بررسی می‌شوند.</string>
     <string name="other_domains_title">دامنه‌های دیگر</string>
     <string name="other_domains_settings_footer">بعد از .kachat جست‌وجو می‌شوند و اگر نام واردشده آنجا هم باشد، زیر «دامنه‌های دیگر» نمایش داده می‌شوند.</string>
     <string name="chatting_picker_intro_any_name_kachat">اگر این عبارت بازیابی هویت شما را در نشانی دیگری دارد - یک دامنه (.kachat، .kas، .k یا .kaspa) یا موجودی گفت‌وگوی شارژشده - آن را اینجا انتخاب کنید. فقط نشانی‌های دارای موجودی یا دامنه نشان داده می‌شوند.</string>

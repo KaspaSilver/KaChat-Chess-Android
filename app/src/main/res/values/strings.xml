@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KaChat Chess</string>
+    <string name="app_name">KaPlay</string>
 
     <!-- UI strings, extracted from hardcoded literals throughout ui/screens/ -->
     <string name="photo_saved">Photo saved</string>
@@ -428,7 +428,7 @@
     <string name="node_connections_blocked">Node connections appear blocked on this network. Receiving messages still works over the indexer and plain payments still go through the REST API, but sending chat messages needs a node connection.</string>
     <string name="last_sync">Last Sync</string>
     <string name="latency">Latency</string>
-    <string name="message_indexer_service_for_chat_functionality">Message indexer service for chat functionality</string>
+    <string name="message_indexer_service_for_chat_functionality">Message indexer service for chat functionality. Also serves .kachat names when it has them (see the Domains tab).</string>
     <string name="open_chat">Open Chat</string>
     <string name="play_chess">Play Chess</string>
     <string name="play_sound">Play sound</string>
@@ -751,8 +751,8 @@
     <string name="welcome_fund_chatting_body">50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages.</string>
     <!-- Testnet (iOS bdae4b7, 0c1af03, 9858bd1, 0bda85e, af8ec68, f38cac2) -->
     <string name="testnet">Testnet</string>
-    <string name="testnet_restart_to_testnet">Close KaChat Chess completely and open it again to finish switching to Testnet.</string>
-    <string name="testnet_restart_to_mainnet">Close KaChat Chess completely and open it again to finish switching back to Mainnet.</string>
+    <string name="testnet_restart_to_testnet">Close KaPlay completely and open it again to finish switching to Testnet.</string>
+    <string name="testnet_restart_to_mainnet">Close KaPlay completely and open it again to finish switching back to Mainnet.</string>
     <string name="kaposts_not_on_testnet">KaPosts isn\'t available on Testnet yet</string>
     <string name="kaposts_not_on_testnet_sub">There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet.</string>
     <string name="nextcloud_off_on_testnet">Nextcloud is off while Testnet is on.</string>
@@ -1372,7 +1372,7 @@
     <string name="kn_err_enter_address_or_domain">Enter an address or a domain.</string>
     <string name="kn_err_name_address_cant_own">That name\'s address can\'t own a .kachat name.</string>
     <string name="kn_err_no_domain_by_name">No domain found by that name.</string>
-    <string name="kachat_names_resolved_first_footer">Resolved first, everywhere you can type an address.</string>
+    <string name="kachat_names_resolved_first_footer">Resolved first, everywhere you can type an address. Names come from the Message Indexer on the Indexer tab when it serves them and is caught up, otherwise straight from the chain. Run your own indexer and put its URL there to use it.</string>
     <string name="other_domains_title">Other Domains</string>
     <string name="other_domains_settings_footer">Looked up after .kachat, and listed under Other domains when a typed name also exists there.</string>
     <string name="chatting_picker_intro_any_name_kachat">If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown.</string>

@@ -297,7 +297,6 @@
     <string name="kaspa_node">Kaspa-Knoten</string>
     <string name="last_sync">Letzte Synchronisation</string>
     <string name="latency">Latenz</string>
-    <string name="message_indexer_service_for_chat_functionality">Nachrichtenindexer-Dienst für Chat-Funktionalität</string>
     <string name="open_chat">Chat öffnen</string>
     <string name="play_chess">Schach spielen</string>
     <string name="play_sound">Ton abspielen</string>
@@ -1165,7 +1164,6 @@
     <string name="kn_err_enter_address_or_domain">Gib eine Adresse oder eine Domain ein.</string>
     <string name="kn_err_name_address_cant_own">Die Adresse dieses Namens kann keinen .kachat-Namen besitzen.</string>
     <string name="kn_err_no_domain_by_name">Keine Domain mit diesem Namen gefunden.</string>
-    <string name="kachat_names_resolved_first_footer">Wird zuerst aufgelöst, überall, wo du eine Adresse eingeben kannst.</string>
     <string name="other_domains_title">Andere Domains</string>
     <string name="other_domains_settings_footer">Werden nach .kachat gesucht und unter „Andere Domains“ aufgeführt, wenn ein eingegebener Name auch dort existiert.</string>
     <string name="chatting_picker_intro_any_name_kachat">Wenn dieser Seed deine Identität bereits unter einer anderen Adresse hat – eine Domain (.kachat, .kas, .k oder .kaspa) oder ein Chat-Guthaben –, wähle sie hier. Es werden nur Adressen mit Guthaben oder Domains angezeigt.</string>

@@ -330,7 +330,7 @@ fun WelcomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(
-                    text = "KaChat Chess",
+                    text = "KaPlay",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 36.sp
@@ -342,7 +342,7 @@ fun WelcomeScreen(
                     // scripts/make_app_icon.py - not R.mipmap.ic_launcher, the adaptive-icon XML
                     // painterResource cannot load.
                     painter = painterResource(id = R.drawable.kachat_chess_app_mark),
-                    contentDescription = "KaChat Chess",
+                    contentDescription = "KaPlay",
                     modifier = Modifier.size(40.dp).clip(RoundedCornerShape(9.dp))
                 )
             }
@@ -481,7 +481,7 @@ fun WelcomeScreen(
         // (iOS: 10pt above the safe area), so the height budget that keeps Create and Import on
         // screen is untouched and a 3-button bar never covers it.
         Text(
-            text = "KaChat Chess ${com.kachat.app.util.AppVersion.display}",
+            text = "KaPlay ${com.kachat.app.util.AppVersion.display}",
             fontSize = 11.sp,
             color = LocalAppColors.current.textSecondary,
             modifier = Modifier

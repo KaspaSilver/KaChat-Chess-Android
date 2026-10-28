@@ -297,7 +297,6 @@
     <string name="kaspa_node">Kaspa 节点</string>
     <string name="last_sync">上次同步</string>
     <string name="latency">延迟</string>
-    <string name="message_indexer_service_for_chat_functionality">用于聊天功能的消息索引服务</string>
     <string name="open_chat">打开聊天</string>
     <string name="play_chess">下棋</string>
     <string name="play_sound">播放声音</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">请输入地址或域名。</string>
     <string name="kn_err_name_address_cant_own">该名称的地址无法拥有 .kachat 名称。</string>
     <string name="kn_err_no_domain_by_name">未找到该名称的域名。</string>
-    <string name="kachat_names_resolved_first_footer">在所有可以输入地址的地方优先解析。</string>
     <string name="other_domains_title">其他域名</string>
     <string name="other_domains_settings_footer">在 .kachat 之后查找;如果输入的名称在那里也存在,会列在“其他域名”下。</string>
     <string name="chatting_picker_intro_any_name_kachat">如果此助记词已在其他地址上保存了你的身份(.kachat、.kas、.k 或 .kaspa 域名,或有余额的聊天地址),请在此选择。只显示有余额或域名的地址。</string>

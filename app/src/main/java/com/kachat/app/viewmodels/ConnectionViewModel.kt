@@ -68,8 +68,22 @@ data class NodeInfo(
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
     private val settings: AppSettingsRepository,
-    private val nodePoolManager: com.kachat.app.services.NodePoolManager
+    private val nodePoolManager: com.kachat.app.services.NodePoolManager,
+    private val kachatNamesRegistry: dagger.Lazy<com.kachat.app.services.kachatnames.KachatNamesRegistry>,
 ) : ViewModel() {
+
+    /** Where .kachat names are read from right now, for Connection Settings > Domains: the
+     *  Message Indexer's URL, the chain, or null until the registry has picked (iOS 1d23002). */
+    val kachatNamesSource: StateFlow<com.kachat.app.services.kachatnames.KachatNamesRegistry.Source?>
+        get() = kachatNamesRegistry.get().source
+
+    /** The source is picked on first use; pick it now if nothing has asked yet. */
+    fun prepareKachatNamesSource() {
+        if (!com.kachat.app.services.kachatnames.KachatNamesService.isLaunched) return
+        val registry = kachatNamesRegistry.get()
+        if (registry.source.value != null) return
+        viewModelScope.launch { runCatching { registry.prepare() } }
+    }
 
     val activeNodes: StateFlow<List<NodeInfo>> = nodePoolManager.activeNodes
     val allNodes: StateFlow<List<NodeInfo>> = nodePoolManager.allNodes

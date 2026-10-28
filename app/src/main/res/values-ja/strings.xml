@@ -297,7 +297,6 @@
     <string name="kaspa_node">Kaspaノード</string>
     <string name="last_sync">最終同期</string>
     <string name="latency">レイテンシー</string>
-    <string name="message_indexer_service_for_chat_functionality">チャット機能用メッセージインデクササービス</string>
     <string name="open_chat">チャットを開く</string>
     <string name="play_chess">チェスをする</string>
     <string name="play_sound">サウンドを再生</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">アドレスまたはドメインを入力してください。</string>
     <string name="kn_err_name_address_cant_own">その名前のアドレスは.kachatの名前を所有できません。</string>
     <string name="kn_err_no_domain_by_name">その名前のドメインは見つかりません。</string>
-    <string name="kachat_names_resolved_first_footer">アドレスを入力できるすべての場所で最初に解決されます。</string>
     <string name="other_domains_title">その他のドメイン</string>
     <string name="other_domains_settings_footer">.kachatの次に検索され、入力した名前がそこにもある場合は「その他のドメイン」に表示されます。</string>
     <string name="chatting_picker_intro_any_name_kachat">このシードがすでに別のアドレスであなたのIDを持っている場合(.kachat、.kas、.k、.kaspaのドメイン、または入金済みのチャット残高)、ここで選択してください。残高かドメインがあるアドレスのみ表示されます。</string>

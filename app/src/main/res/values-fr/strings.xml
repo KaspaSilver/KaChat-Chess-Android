@@ -297,7 +297,6 @@
     <string name="kaspa_node">Nœud Kaspa</string>
     <string name="last_sync">Dernière synchronisation</string>
     <string name="latency">Latence</string>
-    <string name="message_indexer_service_for_chat_functionality">Service d\'indexation des messages pour la fonctionnalité de discussion</string>
     <string name="open_chat">Ouvrir la discussion</string>
     <string name="play_chess">Jouer aux echecs</string>
     <string name="play_sound">Jouer un son</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">Saisissez une adresse ou un domaine.</string>
     <string name="kn_err_name_address_cant_own">L’adresse de ce nom ne peut pas détenir de nom .kachat.</string>
     <string name="kn_err_no_domain_by_name">Aucun domaine trouvé à ce nom.</string>
-    <string name="kachat_names_resolved_first_footer">Résolus en premier, partout où vous pouvez saisir une adresse.</string>
     <string name="other_domains_title">Autres domaines</string>
     <string name="other_domains_settings_footer">Recherchés après .kachat, et listés sous Autres domaines quand un nom saisi y existe aussi.</string>
     <string name="chatting_picker_intro_any_name_kachat">Si cette phrase de récupération détient déjà votre identité à une autre adresse (un domaine .kachat, .kas, .k ou .kaspa, ou un solde de discussion approvisionné), choisissez-la ici. Seules les adresses avec un solde ou des domaines sont affichées.</string>

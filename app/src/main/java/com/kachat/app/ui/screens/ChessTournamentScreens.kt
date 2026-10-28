@@ -1569,7 +1569,7 @@ private fun ChessWaitingRoom(
                                 type = "text/plain"
                                 putExtra(
                                     android.content.Intent.EXTRA_TEXT,
-                                    "Play me at chess in KaChat Chess: open Play > ${if (tournament.isDuel) "1v1" else "Tournaments"} > Join with a code, and enter ${tournament.id}",
+                                    "Play me at chess in KaPlay: open Play > ${if (tournament.isDuel) "1v1" else "Tournaments"} > Join with a code, and enter ${tournament.id}",
                                 )
                             }
                             context.startActivity(android.content.Intent.createChooser(share, null))
@@ -1768,7 +1768,7 @@ fun ChessTournamentScreen(tournamentId: String, navController: NavController) {
                                             type = "text/plain"
                                             putExtra(
                                                 android.content.Intent.EXTRA_TEXT,
-                                                "Join my chess tournament in KaChat Chess: open Play > ${if (tournament.isDuel) "1v1" else "Tournaments"} > Join with a code, and enter ${tournament.id}",
+                                                "Join my chess tournament in KaPlay: open Play > ${if (tournament.isDuel) "1v1" else "Tournaments"} > Join with a code, and enter ${tournament.id}",
                                             )
                                         }
                                         context.startActivity(android.content.Intent.createChooser(share, null))

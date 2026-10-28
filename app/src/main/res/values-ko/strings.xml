@@ -297,7 +297,6 @@
     <string name="kaspa_node">Kaspa 노드</string>
     <string name="last_sync">마지막 동기화</string>
     <string name="latency">지연 시간</string>
-    <string name="message_indexer_service_for_chat_functionality">채팅 기능을 위한 메시지 인덱서 서비스</string>
     <string name="open_chat">채팅 열기</string>
     <string name="play_chess">체스 하기</string>
     <string name="play_sound">소리 재생</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">주소 또는 도메인을 입력하세요.</string>
     <string name="kn_err_name_address_cant_own">그 이름의 주소는 .kachat 이름을 소유할 수 없습니다.</string>
     <string name="kn_err_no_domain_by_name">그 이름의 도메인을 찾을 수 없습니다.</string>
-    <string name="kachat_names_resolved_first_footer">주소를 입력할 수 있는 모든 곳에서 가장 먼저 확인됩니다.</string>
     <string name="other_domains_title">다른 도메인</string>
     <string name="other_domains_settings_footer">.kachat 다음에 찾으며, 입력한 이름이 그곳에도 있으면 다른 도메인 아래에 표시됩니다.</string>
     <string name="chatting_picker_intro_any_name_kachat">이 시드가 이미 다른 주소에 신원을 갖고 있다면(.kachat, .kas, .k, .kaspa 도메인 또는 입금된 채팅 잔액) 여기에서 선택하세요. 잔액이나 도메인이 있는 주소만 표시됩니다.</string>

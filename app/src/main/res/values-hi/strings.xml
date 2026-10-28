@@ -297,7 +297,6 @@
     <string name="kaspa_node">कास्पा नोड</string>
     <string name="last_sync">अंतिम सिंक</string>
     <string name="latency">विलंबता</string>
-    <string name="message_indexer_service_for_chat_functionality">चैट कार्यक्षमता के लिए संदेश इंडेक्सर सेवा</string>
     <string name="open_chat">चैट खोलें</string>
     <string name="play_chess">शतरंज खेलें</string>
     <string name="play_sound">ध्वनि चलाएं</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">एक पता या डोमेन दर्ज करें।</string>
     <string name="kn_err_name_address_cant_own">उस नाम का पता किसी .kachat नाम का मालिक नहीं हो सकता।</string>
     <string name="kn_err_no_domain_by_name">उस नाम का कोई डोमेन नहीं मिला।</string>
-    <string name="kachat_names_resolved_first_footer">जहाँ भी आप पता लिख सकते हैं, वहाँ सबसे पहले हल होते हैं।</string>
     <string name="other_domains_title">अन्य डोमेन</string>
     <string name="other_domains_settings_footer">.kachat के बाद खोजे जाते हैं, और लिखा गया नाम वहाँ भी हो तो अन्य डोमेन में दिखते हैं।</string>
     <string name="chatting_picker_intro_any_name_kachat">अगर यह सीड पहले से किसी दूसरे पते पर आपकी पहचान रखता है - एक डोमेन (.kachat, .kas, .k या .kaspa) या फ़ंड किया हुआ चैट बैलेंस - तो उसे यहाँ चुनें। केवल बैलेंस या डोमेन वाले पते दिखाए जाते हैं।</string>

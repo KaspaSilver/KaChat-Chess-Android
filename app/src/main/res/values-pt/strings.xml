@@ -297,7 +297,6 @@
     <string name="kaspa_node">No Kaspa</string>
     <string name="last_sync">Ultima sincronizacao</string>
     <string name="latency">Latencia</string>
-    <string name="message_indexer_service_for_chat_functionality">Servico de indexacao de mensagens para funcionalidade de chat</string>
     <string name="open_chat">Abrir chat</string>
     <string name="play_chess">Jogar xadrez</string>
     <string name="play_sound">Reproduzir som</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">Digite um endereço ou um domínio.</string>
     <string name="kn_err_name_address_cant_own">O endereço desse nome não pode ter um nome .kachat.</string>
     <string name="kn_err_no_domain_by_name">Nenhum domínio encontrado com esse nome.</string>
-    <string name="kachat_names_resolved_first_footer">Resolvidos primeiro, em todo lugar onde você pode digitar um endereço.</string>
     <string name="other_domains_title">Outros domínios</string>
     <string name="other_domains_settings_footer">Procurados depois de .kachat e listados em Outros domínios quando um nome digitado também existe lá.</string>
     <string name="chatting_picker_intro_any_name_kachat">Se esta seed já guarda sua identidade em outro endereço (um domínio .kachat, .kas, .k ou .kaspa, ou um saldo de chat com fundos), escolha-o aqui. Só aparecem endereços com saldo ou domínios.</string>

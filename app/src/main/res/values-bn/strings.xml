@@ -297,7 +297,6 @@
     <string name="kaspa_node">কাস্পা নোড</string>
     <string name="last_sync">সর্বশেষ সিংক</string>
     <string name="latency">বিলম্ব</string>
-    <string name="message_indexer_service_for_chat_functionality">চ্যাট কার্যকারিতার জন্য বার্তা ইনডেক্সার সেবা</string>
     <string name="open_chat">চ্যাট খুলুন</string>
     <string name="play_chess">দাবা খেলুন</string>
     <string name="play_sound">শব্দ চালান</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">একটি ঠিকানা বা ডোমেইন লিখুন।</string>
     <string name="kn_err_name_address_cant_own">এই নামের ঠিকানা কোনো .kachat নামের মালিক হতে পারে না।</string>
     <string name="kn_err_no_domain_by_name">এই নামে কোনো ডোমেইন পাওয়া যায়নি।</string>
-    <string name="kachat_names_resolved_first_footer">যেখানেই ঠিকানা লেখা যায়, সেখানে আগে খোঁজা হয়।</string>
     <string name="other_domains_title">অন্যান্য ডোমেইন</string>
     <string name="other_domains_settings_footer">.kachat-এর পরে খোঁজা হয়, আর লেখা নামটি সেখানেও থাকলে অন্যান্য ডোমেইনের নিচে দেখানো হয়।</string>
     <string name="chatting_picker_intro_any_name_kachat">এই সিড যদি আগে থেকেই অন্য ঠিকানায় আপনার পরিচয় রাখে - একটি ডোমেইন (.kachat, .kas, .k বা .kaspa) বা অর্থ জমা থাকা চ্যাট ব্যালেন্স - এখানে সেটি বেছে নিন। শুধু ব্যালেন্স বা ডোমেইন থাকা ঠিকানা দেখানো হয়।</string>

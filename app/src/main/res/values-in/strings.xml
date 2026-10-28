@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KaChat Chess</string>
+    <string name="app_name">KaPlay</string>
     <string name="n_12_words">12 kata</string>
     <string name="accept">Terima</string>
     <string name="account_name">Nama Akun</string>
@@ -207,7 +207,6 @@
     <string name="kaspa_node">Node Kaspa</string>
     <string name="last_sync">Sinkronisasi Terakhir</string>
     <string name="latency">Latensi</string>
-    <string name="message_indexer_service_for_chat_functionality">Layanan pengindeks pesan untuk fungsi obrolan</string>
     <string name="open_chat">Buka Obrolan</string>
     <string name="play_chess">Main Catur</string>
     <string name="play_sound">Putar suara</string>
@@ -1040,7 +1039,6 @@
     <string name="kn_err_enter_address_or_domain">Masukkan alamat atau domain.</string>
     <string name="kn_err_name_address_cant_own">Alamat nama itu tidak bisa memiliki nama .kachat.</string>
     <string name="kn_err_no_domain_by_name">Tidak ada domain dengan nama itu.</string>
-    <string name="kachat_names_resolved_first_footer">Diresolusikan lebih dulu, di mana pun Anda bisa mengetik alamat.</string>
     <string name="other_domains_title">Domain Lain</string>
     <string name="other_domains_settings_footer">Dicari setelah .kachat, dan ditampilkan di Domain lain jika nama yang diketik juga ada di sana.</string>
     <string name="chatting_picker_intro_any_name_kachat">Jika seed ini sudah menyimpan identitas Anda di alamat lain - domain (.kachat, .kas, .k, atau .kaspa) atau saldo chat yang terisi - pilih di sini. Hanya alamat dengan saldo atau domain yang ditampilkan.</string>

@@ -175,7 +175,7 @@ fun OpenSourceLicensesScreen(onBack: () -> Unit) {
         ) {
             item {
                 Text(
-                    "KaChat Chess is built with these open source libraries. Their authors ask that these " +
+                    "KaPlay is built with these open source libraries. Their authors ask that these " +
                         "notices travel with the app.",
                     color = colors.textSecondary,
                     fontSize = 14.sp,

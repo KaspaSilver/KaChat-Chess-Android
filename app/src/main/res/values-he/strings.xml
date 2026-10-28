@@ -297,7 +297,6 @@
     <string name="kaspa_node">צומת קספה</string>
     <string name="last_sync">סנכרון אחרון</string>
     <string name="latency">זמן תגובה</string>
-    <string name="message_indexer_service_for_chat_functionality">שירות מאנדקס הודעות לפונקציונליות צ\'אט</string>
     <string name="open_chat">פתח צ\'אט</string>
     <string name="play_chess">שחק שחמט</string>
     <string name="play_sound">השמע צליל</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">הזן כתובת או דומיין.</string>
     <string name="kn_err_name_address_cant_own">הכתובת של השם הזה לא יכולה להחזיק שם .kachat.</string>
     <string name="kn_err_no_domain_by_name">לא נמצא דומיין בשם הזה.</string>
-    <string name="kachat_names_resolved_first_footer">נפתרים ראשונים, בכל מקום שבו אפשר להזין כתובת.</string>
     <string name="other_domains_title">דומיינים אחרים</string>
     <string name="other_domains_settings_footer">נבדקים אחרי .kachat, ומופיעים תחת דומיינים אחרים כשהשם שהוזן קיים גם שם.</string>
     <string name="chatting_picker_intro_any_name_kachat">אם הסיד הזה כבר מחזיק את הזהות שלך בכתובת אחרת - דומיין (.kachat, .kas, .k או .kaspa) או יתרת צ׳אט ממומנת - בחר אותה כאן. מוצגות רק כתובות עם יתרה או דומיינים.</string>

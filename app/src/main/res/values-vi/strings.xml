@@ -297,7 +297,6 @@
     <string name="kaspa_node">Nút Kaspa</string>
     <string name="last_sync">Đồng bộ lần cuối</string>
     <string name="latency">Độ trễ</string>
-    <string name="message_indexer_service_for_chat_functionality">Dịch vụ lập chỉ mục tin nhắn cho chức năng trò chuyện</string>
     <string name="open_chat">Mở trò chuyện</string>
     <string name="play_chess">Chơi cờ vua</string>
     <string name="play_sound">Phát âm thanh</string>
@@ -1168,7 +1167,6 @@
     <string name="kn_err_enter_address_or_domain">Nhập địa chỉ hoặc tên miền.</string>
     <string name="kn_err_name_address_cant_own">Địa chỉ của tên đó không thể sở hữu tên .kachat.</string>
     <string name="kn_err_no_domain_by_name">Không tìm thấy tên miền nào có tên đó.</string>
-    <string name="kachat_names_resolved_first_footer">Được phân giải trước, ở mọi nơi bạn có thể nhập địa chỉ.</string>
     <string name="other_domains_title">Tên miền khác</string>
     <string name="other_domains_settings_footer">Được tra sau .kachat, và hiển thị trong Tên miền khác khi tên đã nhập cũng có ở đó.</string>
     <string name="chatting_picker_intro_any_name_kachat">Nếu cụm seed này đã giữ danh tính của bạn ở một địa chỉ khác - một tên miền (.kachat, .kas, .k hoặc .kaspa) hoặc số dư chat đã nạp - hãy chọn ở đây. Chỉ hiển thị địa chỉ có số dư hoặc tên miền.</string>

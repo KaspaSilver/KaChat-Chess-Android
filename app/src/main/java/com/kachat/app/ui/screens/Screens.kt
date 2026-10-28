@@ -3267,6 +3267,35 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
                     label = "KaChat Names (.kachat)",
                     value = stringResource(if (isMainnet) R.string.kn_live_on_mainnet else R.string.kn_live_testnet_registry)
                 )
+                // Where the names come from right now (iOS 1d23002): the Message Indexer's URL,
+                // or the chain when it doesn't serve them or is behind.
+                val namesSource by viewModel.kachatNamesSource.collectAsState()
+                LaunchedEffect(Unit) { viewModel.prepareKachatNamesSource() }
+                SettingsDivider()
+                Column(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Source", color = LocalAppColors.current.textSecondary, fontSize = 12.sp)
+                    when (val source = namesSource) {
+                        is com.kachat.app.services.kachatnames.KachatNamesRegistry.Source.Indexer -> Text(
+                            source.base, color = LocalAppColors.current.textSecondary,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = 15.sp,
+                        )
+                        com.kachat.app.services.kachatnames.KachatNamesRegistry.Source.Chain -> {
+                            Text("Read straight from the chain", color = LocalAppColors.current.textSecondary, fontSize = 15.sp)
+                            Text(
+                                "The Message Indexer doesn't serve .kachat names on this network, or is behind.",
+                                color = LocalAppColors.current.textSecondary, fontSize = 12.sp,
+                            )
+                        }
+                        null -> Text("Checking...", color = LocalAppColors.current.textSecondary, fontSize = 15.sp)
+                    }
+                }
+                SettingsDivider()
+                SettingsActionItem("Change on the Indexer tab", Icons.Default.ArrowCircleRight, KaspaTeal) {
+                    selectedConnectionTab = 0
+                }
             }
             // The other name services this app reads (see NameServicesClient). Shown, not
             // editable; the .kas URL follows the selected network.
