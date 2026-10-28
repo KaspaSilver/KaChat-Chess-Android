@@ -84,7 +84,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 
 /**
  * Top-level navigation destinations.
@@ -102,7 +102,8 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     // to rearrange (iOS ChessMainTabView).
     object Play        : Screen("play",         "Play",         com.kachat.app.ui.theme.IosSymbols.CheckerboardRectangle)
     object Leaderboard : Screen("leaderboard",  "Leaderboard",  Icons.Default.EmojiEvents)
-    object Wallet      : Screen("wallet",       "Wallet",       Icons.Default.AccountBalanceWallet)
+    // KaPay's wallet symbol, as KaPay's own dock has it (iOS 38e0455 `wallet.bifold`).
+    object Wallet      : Screen("wallet",       "Wallet",       Icons.Outlined.AccountBalanceWallet)
     object Chats       : Screen("chats",        "Chats",        Icons.Default.Forum)
     object Portfolio   : Screen("portfolio",    "Portfolio",    Icons.Default.PieChart)
     object Profile     : Screen("profile",      "Profile",      Icons.Default.AccountCircle)
