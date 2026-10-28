@@ -2564,10 +2564,6 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
     // a pinned user never sees them flash on screen entry.
     val nodeSelectionIsAutomatic by viewModel.nodeSelectionIsAutomatic.collectAsState()
     val showPoolSections = nodeSelectionIsAutomatic == true
-    // "Other Nodes" means genuinely other than what's already listed above under Active
-    // Nodes — allNodes includes every known node (active and not), so without this filter
-    // the same active nodes showed up twice, once in each section.
-    val otherNodes = remember(allNodes) { allNodes.filterNot { it.status == "Active" } }
     val status by viewModel.status.collectAsState()
     val dotColorHex by viewModel.dotColorHex.collectAsState()
     val lastSyncAt by viewModel.lastSyncAt.collectAsState()
@@ -2646,6 +2642,9 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
     }
     // iOS shows the indexer's host alone (URLComponents.host): no scheme, port or path.
     val indexerHost = indexerUrl.substringAfter("://").substringBefore("/").substringBefore(":")
+    val pushIndexerUrl by viewModel.pushIndexerUrl.collectAsState()
+    // Compared with the saved indexer of the same network, as iOS compares its two settings.
+    val savedIndexerUrl by viewModel.indexerUrl.collectAsState()
 
     IosSheetPage(grouped = true) {
         SheetNavBar(
@@ -2698,6 +2697,15 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
                 }
                 SettingsDivider()
                 ConnectionStatusRow(stringResource(R.string.indexer), indexerHost, monospaced = true)
+                // The push register endpoint, only where it differs from the indexer (iOS).
+                if (pushIndexerUrl.isNotBlank() && pushIndexerUrl != savedIndexerUrl) {
+                    SettingsDivider()
+                    ConnectionStatusRow(
+                        "Push Register",
+                        pushIndexerUrl.substringAfter("://").substringBefore("/").substringBefore(":"),
+                        monospaced = true,
+                    )
+                }
                 SettingsDivider()
                 ConnectionStatusRow(stringResource(R.string.last_sync), lastSyncAt)
             }
@@ -2777,6 +2785,7 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(LocalAppColors.current.surface)
                 ) {
+                    if (activeNodes.isEmpty()) NodeListEmptyRow("No active nodes")
                     activeNodes.forEachIndexed { index, node ->
                         Box(Modifier.clickable { copyNodeEndpoint(node) }) { ActiveNodeRow(node) }
                         if (index < activeNodes.size - 1) SettingsDivider()
@@ -2794,19 +2803,22 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Every known node, active ones included, sorted by state then latency (the
+                    // pool publishes them in that order) - iOS's All Nodes section.
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(8.dp).background(LocalAppColors.current.textSecondary, CircleShape))
+                        Icon(Icons.Default.Dns, contentDescription = null, tint = LocalAppColors.current.textSecondary, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.other_nodes), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textSecondary)
+                        Text(text = "All Nodes", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textSecondary)
                     }
-                    Text(text = otherNodes.size.toString(), color = LocalAppColors.current.textSecondary)
+                    Text(text = allNodes.size.toString(), color = LocalAppColors.current.textSecondary)
                 }
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(LocalAppColors.current.surface)
                 ) {
-                    otherNodes.forEachIndexed { index, node ->
+                    if (allNodes.isEmpty()) NodeListEmptyRow("No nodes discovered")
+                    allNodes.forEachIndexed { index, node ->
                         AllNodeRow(node)
-                        if (index < otherNodes.size - 1) SettingsDivider()
+                        if (index < allNodes.size - 1) SettingsDivider()
                     }
                 }
 
@@ -2827,6 +2839,18 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
 /** A label/value row of iOS ConnectionStatusDetailView's first section: the label 17pt, the value
  *  trailing in the secondary colour (or [valueColor]) - a host name in monospaced caption, as iOS
  *  writes the node and indexer - and, for Status, a 10pt dot in [dot]'s colour before it. */
+/** An empty node list's one line, as iOS writes it: secondary and italic. */
+@Composable
+private fun NodeListEmptyRow(text: String) {
+    Text(
+        text,
+        color = LocalAppColors.current.textSecondary,
+        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+        fontSize = 17.sp,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+    )
+}
+
 @Composable
 private fun ConnectionStatusRow(
     label: String,
