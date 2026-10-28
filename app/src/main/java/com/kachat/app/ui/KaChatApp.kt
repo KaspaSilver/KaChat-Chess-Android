@@ -260,12 +260,31 @@ fun KaChatApp(walletViewModel: WalletViewModel = hiltViewModel()) {
 
     if (!startupResolved) {
         // Cold start, routing decision still loading (the async biometrics-for-login read that
-        // gates auto-login into the last-used account). Compose NOTHING yet — composing the
-        // Onboarding/accounts screen as a transient default flashed the account list for a few
-        // frames before jumping into the account. The themed Surface behind this composable
-        // keeps the window seamlessly on the background color, iOS-style; the wait is a few
-        // milliseconds of DataStore read.
-        Box(modifier = Modifier.fillMaxSize())
+        // gates auto-login into the last-used account). Composing the Onboarding/accounts screen
+        // as a transient default flashed the account list for a few frames before jumping into
+        // the account. iOS's LoadingView instead - after a moment, since the wait is usually a
+        // few milliseconds of DataStore read and a spinner that blinks past is noise.
+        var showLoading by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(300)
+            showLoading = true
+        }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (showLoading) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                ) {
+                    CircularProgressIndicator(color = LocalAppColors.current.textSecondary)
+                    Text(
+                        "Loading...",
+                        color = LocalAppColors.current.textSecondary,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        }
     } else if (!isLoggedIn || mnemonic != null) {
         OnboardingScreen(walletViewModel)
     } else {
