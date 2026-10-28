@@ -1,5 +1,5 @@
 """Android vector drawables for the KaPlay icon - the iOS design/app-icon/make_chess_icon.py artwork
-(KaChat-Chess-iPhone 1d23002), shape for shape. Run from the repo root:
+(KaChat-Chess-iPhone 1d23002, K from 3993f35), shape for shape. Run from the repo root:
 python3 scripts/make_app_icon.py app/src/main/res
 Writes drawable/ic_launcher_foreground.xml (the adaptive icon's foreground; the background is
 @color/ic_launcher_background, white), drawable/kachat_chess_app_mark.xml (the sign-in screen's
@@ -55,10 +55,11 @@ def art(theme, include_bg):
     p.append(f'<path android:fillColor="{cut}" android:pathData="{rrect(196, 448, 132, 44, 12)} {rrect(240, 404, 44, 132, 12)}"/>')
     buttons = " ".join(circle(cx, cy, 23) for cx, cy in ((762, 422), (810, 470), (762, 518), (714, 470)))
     p.append(f'<path android:fillColor="{cut}" android:pathData="{buttons}"/>')
-    # The backward K (the Kaspa mark) in the middle.
-    p.append(f'''<group android:translateX="433.2" android:translateY="390.5" android:scaleX="1.75" android:scaleY="1.75">
-        <path android:strokeColor="{cut}" android:strokeWidth="17" android:strokeMiterLimit="4" android:strokeLineJoin="miter" android:pathData="M8,15 L61,50 L8,85"/>
-        <path android:fillColor="{cut}" android:pathData="M60,-3 L77,-5 L80,50 L74,105 L56,103 L58,50 Z"/>
+    # The backward K (the Kaspa mark) in the middle, traced from the KaChat app's icon: a bar
+    # whose edges bend out at the middle, and steep, thick chevron arms (iOS 3993f35).
+    p.append(f'''<group android:translateX="512" android:translateY="470" android:scaleX="0.4608" android:scaleY="0.4608">
+        <path android:strokeColor="{cut}" android:strokeWidth="78" android:strokeMiterLimit="4" android:strokeLineJoin="miter" android:pathData="M-127,-147 L64,0 L-127,147"/>
+        <path android:fillColor="{cut}" android:pathData="M45,-206 L123,-217 L153,0 L123,217 L45,206 L75,0 Z"/>
     </group>''')
     p.append('</group>')
     return "\n        ".join(p)
