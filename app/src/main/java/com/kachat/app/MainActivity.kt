@@ -7,18 +7,36 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.kachat.app.services.CrashRecorder
 import com.kachat.app.ui.KaChatApp
 import com.kachat.app.ui.theme.KaChatTheme
@@ -50,8 +68,8 @@ class MainActivity : AppCompatActivity() {
         // The balance and the seed screen used to sit in the task switcher's thumbnail of the app
         // in plain view. This is Android's own switch for exactly that, and unlike FLAG_SECURE it
         // does not also block screenshots - and it cannot fight the FLAG_SECURE the seed and
-        // private-key screens set and clear for themselves. Below API 33 there is no equivalent
-        // that leaves screenshots alone. iOS covers the same exposure with a blur.
+        // private-key screens set and clear for themselves. Below API 33, PrivacyCover (iOS's
+        // cover: the icon over the app while it is not in front) is what the thumbnail shows.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
         }
@@ -66,8 +84,51 @@ class MainActivity : AppCompatActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     KaChatApp(walletViewModel)
+                    PrivacyCover()
                     CrashNotice()
                 }
+            }
+        }
+    }
+
+    /**
+     * What the task switcher and a system prompt see instead of the app (iOS PrivacyCoverView):
+     * the app's icon over a frosted layer, from the moment the app stops being the thing in
+     * front until it is again. Below API 33 this is also what the switcher's thumbnail shows.
+     */
+    @androidx.compose.runtime.Composable
+    private fun PrivacyCover() {
+        var covered by remember { mutableStateOf(!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+        DisposableEffect(Unit) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> covered = false
+                    Lifecycle.Event.ON_PAUSE -> covered = true
+                    else -> Unit
+                }
+            }
+            lifecycle.addObserver(observer)
+            onDispose { lifecycle.removeObserver(observer) }
+        }
+        AnimatedVisibility(visible = covered, enter = fadeIn(tween(150)), exit = fadeOut(tween(150))) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.97f))
+                    // Swallows touches so nothing underneath is tapped while covered.
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {},
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                // The app's own icon, shaped like it is on the home screen.
+                Image(
+                    painter = painterResource(R.drawable.kachat_chess_app_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size(72.dp).clip(RoundedCornerShape(16.dp)),
+                )
             }
         }
     }
