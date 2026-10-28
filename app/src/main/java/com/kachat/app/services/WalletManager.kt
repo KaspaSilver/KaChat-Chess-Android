@@ -420,17 +420,68 @@ class WalletManager @Inject constructor(
     fun accountAddedAt(address: String): Long? =
         sharedPrefs.getLong(addedAtKey(address), 0L).takeIf { it > 0L }
 
-    private val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+    private fun createSecureStore(): android.content.SharedPreferences {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        return EncryptedSharedPreferences.create(
+            context,
+            SECURE_PREFS_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
-    private val sharedPrefs = EncryptedSharedPreferences.create(
-        context,
-        SECURE_PREFS_NAME,
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    private val _keysUnavailable = MutableStateFlow(false)
+
+    /**
+     * The accounts are on this phone but their keys can't be opened (iOS
+     * walletNeedingKeyRecovery). The store is sealed by an Android Keystore key that never leaves
+     * the phone it was made on: data carried to a new phone (a device-to-device transfer) arrives
+     * without it. That used to end the app at launch, before any screen. Now the app opens on
+     * WalletRecoveryScreen, with nothing saved while this is true (an in-memory store stands in),
+     * and the unreadable file is left exactly as it is until the user picks a way out.
+     */
+    val keysUnavailable: StateFlow<Boolean> = _keysUnavailable.asStateFlow()
+
+    private var sharedPrefs: android.content.SharedPreferences = try {
+        // A store whose keys are gone may open and only fail on its first read.
+        createSecureStore().also { it.getString(PREF_ACCOUNTS, null) }
+    } catch (e: Exception) {
+        android.util.Log.e("WalletManager", "Wallet store can't be opened; asking for the recovery phrase (the file is left as it is)", e)
+        _keysUnavailable.value = true
+        com.kachat.app.util.InMemorySharedPreferences()
+    }
+
+    /**
+     * Gives up on the unreadable store: deletes it and opens a new, empty one. Only ever from the
+     * recovery screen's two ways out - a recovery phrase being saved, or the account removed.
+     * When the Keystore key itself is broken (a new store can't be made with it either), that
+     * key goes too.
+     */
+    @Synchronized
+    fun replaceUnreadableStore() {
+        if (!_keysUnavailable.value) return
+        context.deleteSharedPreferences(SECURE_PREFS_NAME)
+        sharedPrefs = try {
+            createSecureStore()
+        } catch (e: Exception) {
+            android.util.Log.w("WalletManager", "New wallet store refused; replacing the Keystore key", e)
+            runCatching {
+                KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+            }
+            context.deleteSharedPreferences(SECURE_PREFS_NAME)
+            createSecureStore()
+        }
+        accountsCache = null
+        spendingAddressCacheMemo = null
+        usedAddressesMemo = null
+        quantumSpentMemo = null
+        _keysUnavailable.value = false
+        refreshActiveAddressFlow()
+        refreshPrimarySpendingIndexFlow()
+    }
 
     /**
      * Returns true if at least one wallet has been created/imported.
@@ -514,6 +565,9 @@ class WalletManager @Inject constructor(
      * before anything is overwritten).
      */
     private fun accountsForReplacingWrite(): List<Account> {
+        // A recovery phrase being saved from the recovery screen: the old store can't be read
+        // and never will be, so the new account starts a new one.
+        if (_keysUnavailable.value) replaceUnreadableStore()
         val json = try {
             sharedPrefs.getString(PREF_ACCOUNTS, null)
         } catch (e: Exception) {

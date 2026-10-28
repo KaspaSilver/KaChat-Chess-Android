@@ -85,7 +85,27 @@ fun OnboardingScreen(viewModel: WalletViewModel) {
         }
     }
 
-    NavHost(navController = navController, startDestination = "welcome") {
+    // The accounts are here but their keys can't be opened: the recovery screen comes first
+    // (iOS ContentView's .recovery route). Fixed for this NavHost's life - after a way out it
+    // moves on to the Welcome screen or the app by itself.
+    val startOnRecovery = remember { viewModel.keysUnavailable.value }
+
+    NavHost(navController = navController, startDestination = if (startOnRecovery) "key_recovery" else "welcome") {
+        composable("key_recovery") {
+            WalletRecoveryScreen(
+                address = viewModel.accountWithoutKeysAddress.collectAsState().value,
+                onEnterRecoveryPhrase = {
+                    // The same flow Import Account uses: the source wallet, then the words. The
+                    // unreadable store is only replaced once the phrase is actually saved.
+                    viewModel.resetImportWalletState()
+                    navController.navigate("import_source")
+                },
+                onRemove = {
+                    viewModel.removeAccountWithoutKeys()
+                    navController.navigate("welcome") { popUpTo("key_recovery") { inclusive = true } }
+                },
+            )
+        }
         composable("welcome") {
             WelcomeScreen(
                 viewModel,
@@ -2028,5 +2048,116 @@ private object SecureWindowCount {
         } else {
             counts[window] = n
         }
+    }
+}
+
+/**
+ * Shown instead of the app when the accounts are on this phone but their keys are not (iOS
+ * WalletRecoveryView). The keys are sealed by an Android Keystore key that never leaves the phone
+ * it was made on, so data moved to a new phone arrives without them. This says what happened and
+ * offers the two ways out.
+ */
+@Composable
+private fun WalletRecoveryScreen(
+    address: String?,
+    onEnterRecoveryPhrase: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    var showRemoveConfirmation by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background)
+            .systemBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+    ) {
+        Spacer(Modifier.weight(1f))
+        Icon(Icons.Filled.KeyOff, contentDescription = null, tint = KaspaTeal, modifier = Modifier.size(56.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "Recovery Phrase Needed",
+                color = colors.textPrimary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                "This phone has your account but not its keys. That happens after moving to a new phone, because KaPlay's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept.",
+                color = colors.textSecondary,
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 28.dp),
+            )
+        }
+        // iOS shows the account's name over its address; here the name is inside the store that
+        // can't be read, so the address alone (from the plain settings copy), when it is known.
+        if (address != null) {
+            Text(
+                if (address.length > 20) "${address.take(12)}…${address.takeLast(8)}" else address,
+                color = colors.textSecondary,
+                fontSize = 12.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.textSecondary.copy(alpha = 0.12f))
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                "Enter Recovery Phrase",
+                color = Color.Black,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(KaspaTeal)
+                    .clickable(onClick = onEnterRecoveryPhrase)
+                    .padding(vertical = 14.dp),
+            )
+            Text(
+                "Remove This Account From the Phone",
+                color = Color(0xFFFF3B30),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable { showRemoveConfirmation = true }
+                    .padding(vertical = 14.dp),
+            )
+        }
+    }
+    if (showRemoveConfirmation) {
+        com.kachat.app.ui.theme.IosAlertDialog(
+            onDismissRequest = { showRemoveConfirmation = false },
+            containerColor = colors.surface,
+            title = { Text("Remove this account?", color = colors.textPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "The account and its message history are deleted from this phone. Nothing on the blockchain changes, and you can add the account again later with its recovery phrase.",
+                    color = colors.textSecondary,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showRemoveConfirmation = false; onRemove() }) {
+                    Text("Remove", color = Color(0xFFFF3B30))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveConfirmation = false }) {
+                    Text(stringResource(R.string.cancel), color = colors.textSecondary)
+                }
+            },
+        )
     }
 }

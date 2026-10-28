@@ -1222,6 +1222,43 @@ class WalletViewModel @Inject constructor(
         _isLoggedIn.value = false
     }
 
+    /** The accounts are here but their keys can't be opened: onboarding opens on the recovery
+     *  screen (iOS WalletRecoveryView). */
+    val keysUnavailable: StateFlow<Boolean> = walletManager.keysUnavailable
+
+    /** The account last open on this phone, from the plain settings copy - the encrypted list
+     *  that names it is the thing that can't be read. */
+    val accountWithoutKeysAddress: StateFlow<String?> =
+        settings.activeAddress.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, null)
+
+    /**
+     * The recovery screen's "Remove This Account From the Phone": the unreadable store goes, and
+     * so does what this phone kept for the account last open on it (iOS deleteWallet of
+     * walletNeedingKeyRecovery). Nothing on the chain changes.
+     */
+    fun removeAccountWithoutKeys() {
+        val address = accountWithoutKeysAddress.value
+        // Should even a new store be refused, the Welcome screen still opens; saving an account
+        // there tries again.
+        runCatching { walletManager.replaceUnreadableStore() }
+            .onFailure { android.util.Log.e("WalletViewModel", "Wallet store could not be replaced", it) }
+        if (address != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                for (variant in com.kachat.app.util.KaspaNetwork.accountAddressVariants(address)) {
+                    runCatching { chatRepository.wipeAllLocalDataForAddress(variant) }
+                        .onFailure { android.util.Log.w("WalletViewModel", "Local data wipe failed for a removed account", it) }
+                    runCatching { kachatNameReminders.removeAll(variant) }
+                        .onFailure { android.util.Log.w("WalletViewModel", ".kachat reminder removal failed for a removed account", it) }
+                }
+            }
+        }
+        _accounts.value = walletManager.getAllAccounts()
+        _hasWallet.value = walletManager.hasWallet()
+        _isLoggedIn.value = false
+        _address.value = null
+        _accountName.value = null
+    }
+
     /**
      * Renames any saved account by address — edited from the Welcome screen's saved-accounts
      * list, not just the currently active one, since you can rename an account you're not
