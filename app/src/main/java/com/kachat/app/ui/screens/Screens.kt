@@ -3257,8 +3257,8 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
     val kaspaRestApiUrl by viewModel.kaspaRestApiUrl.collectAsState()
     val kapostIndexerUrl by viewModel.kapostIndexerUrl.collectAsState()
     val translationServiceUrl by viewModel.translationServiceUrl.collectAsState()
-    var editingTranslationUrl by remember { mutableStateOf(false) }
-    var editingKapostIndexerUrl by remember { mutableStateOf(false) }
+    // The URL being edited, if any: every endpoint is editable, as on iOS's ConnectionSettingsView.
+    var editingEndpoint by remember { mutableStateOf<ConnectionViewModel.Endpoint?>(null) }
     val broadcastIndexerUrl by viewModel.broadcastIndexerUrl.collectAsState()
     val pushIndexerUrl by viewModel.pushIndexerUrl.collectAsState()
     val scrollState = rememberScrollState()
@@ -3302,24 +3302,35 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
             when (selectedConnectionTab) {
             0 -> {
             SettingsFormSection(title = stringResource(R.string.message_indexer), footer = stringResource(R.string.message_indexer_service_for_chat_functionality)) {
-                ConnectionUrlField(label = "Indexer URL", value = indexerUrl)
+                ConnectionUrlField(
+                    label = "Indexer URL",
+                    value = indexerUrl,
+                    onClick = { editingEndpoint = ConnectionViewModel.Endpoint.MESSAGE_INDEXER }
+                )
             }
 
             SettingsFormSection(title = stringResource(R.string.kapost_indexer), footer = stringResource(R.string.kapost_indexer_footer)) {
-                // Editable, as on iOS: someone running their own K indexer points the app at it.
                 ConnectionUrlField(
                     label = "KaPost Indexer URL",
                     value = kapostIndexerUrl,
-                    onClick = { editingKapostIndexerUrl = true }
+                    onClick = { editingEndpoint = ConnectionViewModel.Endpoint.KAPOST_INDEXER }
                 )
             }
 
             SettingsFormSection(title = stringResource(R.string.broadcast_indexer), footer = stringResource(R.string.broadcast_indexer_footer)) {
-                ConnectionUrlField(label = "Public Chats Indexer URL", value = broadcastIndexerUrl)
+                ConnectionUrlField(
+                    label = "Public Chats Indexer URL",
+                    value = broadcastIndexerUrl,
+                    onClick = { editingEndpoint = ConnectionViewModel.Endpoint.PUBLIC_CHATS_INDEXER }
+                )
             }
 
             SettingsFormSection(title = "Push Registration", footer = "Used only for push registration and updates") {
-                ConnectionUrlField(label = "Push Indexer URL", value = pushIndexerUrl)
+                ConnectionUrlField(
+                    label = "Push Indexer URL",
+                    value = pushIndexerUrl,
+                    onClick = { editingEndpoint = ConnectionViewModel.Endpoint.PUSH_INDEXER }
+                )
             }
 
             // Verbose API Logging lives in Settings > Diagnostics, as on iOS.
@@ -3333,12 +3344,10 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
             SettingsFormSection(title = "Translation Service", footer = "Translates KaPosts written in another language. Runs on the KaPost indexer's " +
                         "box by default; point this at your own if you host one (see " +
                         "TRANSLATION_SERVICE.md). Tap to change.") {
-                // Editable, unlike the read-only fields around it: the point of this setting is
-                // that someone can run their own translator and point the app at it.
                 ConnectionUrlField(
                     label = "Translation Service URL",
                     value = translationServiceUrl,
-                    onClick = { editingTranslationUrl = true }
+                    onClick = { editingEndpoint = ConnectionViewModel.Endpoint.TRANSLATION }
                 )
                 // Same words as iOS's footer; TRANSLATION_SERVICE.md lives in the iOS repo.
             }
@@ -3398,7 +3407,11 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
             }
             else -> {
             SettingsFormSection(title = stringResource(R.string.kaspa_explorer_api), footer = stringResource(R.string.rest_api_for_transaction_history_and)) {
-                ConnectionUrlField(label = "Kaspa REST API URL", value = kaspaRestApiUrl)
+                ConnectionUrlField(
+                    label = "Kaspa REST API URL",
+                    value = kaspaRestApiUrl,
+                    onClick = { editingEndpoint = ConnectionViewModel.Endpoint.KASPA_REST }
+                )
             }
             }
             }
@@ -3408,13 +3421,29 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
         }
     }
 
-    if (editingKapostIndexerUrl) {
-        var draft by remember { mutableStateOf(kapostIndexerUrl) }
-        var rejected by remember { mutableStateOf(false) }
+    editingEndpoint?.let { endpoint ->
+        val S = com.kachat.app.repository.AppSettingsRepository
+        val (title, current, default) = when (endpoint) {
+            ConnectionViewModel.Endpoint.MESSAGE_INDEXER ->
+                Triple("Indexer URL", indexerUrl, if (onMainnetSettings) S.DEFAULT_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+            // The network's default: the testnet-10 indexer on testnet (iOS 5463ab7).
+            ConnectionViewModel.Endpoint.KAPOST_INDEXER ->
+                Triple("KaPost Indexer URL", kapostIndexerUrl, if (onMainnetSettings) S.DEFAULT_KAPOST_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+            ConnectionViewModel.Endpoint.PUBLIC_CHATS_INDEXER ->
+                Triple("Public Chats Indexer URL", broadcastIndexerUrl, if (onMainnetSettings) S.DEFAULT_BROADCAST_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+            ConnectionViewModel.Endpoint.PUSH_INDEXER ->
+                Triple("Push Indexer URL", pushIndexerUrl, if (onMainnetSettings) S.DEFAULT_PUSH_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+            ConnectionViewModel.Endpoint.TRANSLATION ->
+                Triple("Translation Service URL", translationServiceUrl, S.DEFAULT_TRANSLATION_SERVICE_URL)
+            ConnectionViewModel.Endpoint.KASPA_REST ->
+                Triple("Kaspa REST API URL", kaspaRestApiUrl, if (onMainnetSettings) S.DEFAULT_KASPA_REST_URL else S.DEFAULT_KASPA_TESTNET_REST_URL)
+        }
+        var draft by remember(endpoint) { mutableStateOf(current) }
+        var rejected by remember(endpoint) { mutableStateOf(false) }
         com.kachat.app.ui.theme.IosAlertDialog(
-            onDismissRequest = { editingKapostIndexerUrl = false },
+            onDismissRequest = { editingEndpoint = null },
             containerColor = LocalAppColors.current.surface,
-            title = { Text("KaPost Indexer URL", color = LocalAppColors.current.textPrimary, fontWeight = FontWeight.Bold) },
+            title = { Text(title, color = LocalAppColors.current.textPrimary, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     com.kachat.app.ui.theme.IosTextField(
@@ -3422,13 +3451,17 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
                         onValueChange = { draft = it; rejected = false },
                         singleLine = true,
                         isError = rejected,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri,
+                            autoCorrect = false,
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        if (rejected) "The URL must start with https://"
-                        // The network's default: the testnet-10 indexer on testnet (iOS 5463ab7).
-                        else "Leave blank to use ${if (onMainnetSettings) com.kachat.app.repository.AppSettingsRepository.DEFAULT_KAPOST_INDEXER_URL else com.kachat.app.repository.AppSettingsRepository.DEFAULT_TESTNET_INDEXER_URL}",
+                        // iOS's words for a plain-http URL.
+                        if (rejected) "Use https. Unencrypted connections are not supported."
+                        else "Leave blank to use $default",
                         color = if (rejected) Color(0xFFE57373) else LocalAppColors.current.textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -3436,47 +3469,11 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (viewModel.setKapostIndexerUrl(draft)) editingKapostIndexerUrl = false else rejected = true
+                    if (viewModel.setEndpointUrl(endpoint, draft, current)) editingEndpoint = null else rejected = true
                 }) { Text("Save", color = KaspaTeal) }
             },
             dismissButton = {
-                TextButton(onClick = { editingKapostIndexerUrl = false }) {
-                    Text(stringResource(R.string.cancel), color = LocalAppColors.current.textSecondary)
-                }
-            }
-        )
-    }
-
-    if (editingTranslationUrl) {
-        var draft by remember { mutableStateOf(translationServiceUrl) }
-        com.kachat.app.ui.theme.IosAlertDialog(
-            onDismissRequest = { editingTranslationUrl = false },
-            containerColor = LocalAppColors.current.surface,
-            title = { Text("Translation Service URL", color = LocalAppColors.current.textPrimary, fontWeight = FontWeight.Bold) },
-            text = {
-                Column {
-                    com.kachat.app.ui.theme.IosTextField(
-                        value = draft,
-                        onValueChange = { draft = it },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Leave blank to use ${com.kachat.app.repository.AppSettingsRepository.DEFAULT_TRANSLATION_SERVICE_URL}",
-                        color = LocalAppColors.current.textSecondary,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setTranslationServiceUrl(draft)
-                    editingTranslationUrl = false
-                }) { Text("Save", color = KaspaTeal) }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingTranslationUrl = false }) {
+                TextButton(onClick = { editingEndpoint = null }) {
                     Text(stringResource(R.string.cancel), color = LocalAppColors.current.textSecondary)
                 }
             }
@@ -3484,7 +3481,7 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
     }
 }
 
-/** Read-only for now — editing these let a mistyped URL crash the whole app (fixed at the NetworkService layer too, but not editable at all is safer). */
+/** A connection endpoint's row; with [onClick] it opens that endpoint's edit dialog. */
 @Composable
 fun ConnectionUrlField(label: String, value: String, onClick: (() -> Unit)? = null) {
     Column(

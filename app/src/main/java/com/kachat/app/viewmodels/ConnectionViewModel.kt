@@ -211,35 +211,45 @@ class ConnectionViewModel @Inject constructor(
      *  own connection settings, happens at the next launch (iOS `SettingsViewModel.switchNetwork(to:)`,
      *  e6f664f). Choosing the running network again cancels it. */
     fun switchNetwork(to: com.kachat.app.util.KaspaNetwork.Type) { viewModelScope.launch { settings.switchNetwork(to) } }
-    fun setIndexerUrl(value: String) { viewModelScope.launch { settings.setIndexerUrl(value) } }
-    fun setKaspaRestApiUrl(value: String) { viewModelScope.launch { settings.setKaspaRestUrl(value) } }
+    /** The connection endpoints Connection Settings can edit (iOS ConnectionSettingsView). */
+    enum class Endpoint { MESSAGE_INDEXER, KAPOST_INDEXER, PUBLIC_CHATS_INDEXER, PUSH_INDEXER, TRANSLATION, KASPA_REST }
 
     /**
-     * Blank resets to the default rather than being written through: an empty base URL builds a
-     * request that fails and reads as the server being down.
+     * iOS ConnectionSettingsView's save rule, for one field: https only (an http:// value is
+     * refused - returns false so the dialog can say so), a bare host gets https://, and blank is
+     * the network's default (the settings resolve an empty value to it). A new Message Indexer
+     * asks again where .kachat names come from, now rather than at the next stale refresh.
      */
-    fun setTranslationServiceUrl(value: String) {
-        viewModelScope.launch {
-            val trimmed = value.trim().trimEnd('/')
-            settings.setTranslationServiceUrl(
-                trimmed.ifBlank { AppSettingsRepository.DEFAULT_TRANSLATION_SERVICE_URL }
-            )
-        }
-    }
-    /**
-     * Editable like iOS's field: blank resets to the default, and only https is accepted (a
-     * plain-http indexer would hand every feed read to the network in the clear). Returns false
-     * when the value was rejected, so the dialog can say so instead of closing.
-     */
-    fun setKapostIndexerUrl(value: String): Boolean {
+    fun setEndpointUrl(endpoint: Endpoint, value: String, current: String): Boolean {
         val trimmed = value.trim().trimEnd('/')
-        if (trimmed.isNotEmpty() && !trimmed.startsWith("https://", ignoreCase = true)) return false
+        if (trimmed.startsWith("http://", ignoreCase = true)) return false
+        val normalized = if (trimmed.isEmpty() || trimmed.startsWith("https://", ignoreCase = true)) trimmed else "https://$trimmed"
         viewModelScope.launch {
-            // Blank on testnet is the testnet-10 indexer, never the mainnet default (iOS 5463ab7).
-            settings.setKapostIndexerUrl(trimmed.ifBlank { if (onTestnetSettings) "" else AppSettingsRepository.DEFAULT_KAPOST_INDEXER_URL })
+            when (endpoint) {
+                Endpoint.MESSAGE_INDEXER -> settings.setIndexerUrl(normalized)
+                // Blank on testnet is the testnet-10 indexer, never the mainnet default (iOS 5463ab7).
+                Endpoint.KAPOST_INDEXER -> settings.setKapostIndexerUrl(
+                    normalized.ifBlank { if (onTestnetSettings) "" else AppSettingsRepository.DEFAULT_KAPOST_INDEXER_URL }
+                )
+                Endpoint.PUBLIC_CHATS_INDEXER -> settings.setBroadcastIndexerUrl(normalized)
+                Endpoint.PUSH_INDEXER -> settings.setPushIndexerUrl(normalized)
+                Endpoint.TRANSLATION -> settings.setTranslationServiceUrl(
+                    normalized.ifBlank { AppSettingsRepository.DEFAULT_TRANSLATION_SERVICE_URL }
+                )
+                Endpoint.KASPA_REST -> settings.setKaspaRestUrl(normalized)
+            }
+            val effective = normalized.ifBlank {
+                if (onTestnetSettings) AppSettingsRepository.DEFAULT_TESTNET_INDEXER_URL else AppSettingsRepository.DEFAULT_INDEXER_URL
+            }
+            if (endpoint == Endpoint.MESSAGE_INDEXER && effective != current &&
+                com.kachat.app.services.kachatnames.KachatNamesService.isLaunched
+            ) {
+                runCatching { kachatNamesRegistry.get().prepare(forceSourceCheck = true) }
+            }
         }
         return true
     }
+
     private val onTestnetSettings: Boolean
         get() = com.kachat.app.util.KaspaNetwork.selected.value == com.kachat.app.util.KaspaNetwork.Type.TESTNET
 
