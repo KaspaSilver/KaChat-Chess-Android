@@ -2670,6 +2670,19 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
                         "gRPC (plaintext)"
                     }
                 )
+                // Indexer requests going over HTTP/1.1 because HTTP/2 looked blocked (iOS's DPI row).
+                val dpiSuspected by viewModel.dpiSuspected.collectAsState()
+                if (dpiSuspected) {
+                    SettingsDivider()
+                    ConnectionStatusRow("DPI", "Suspected", valueColor = LocalAppColors.current.warning)
+                    Text(
+                        "Connectivity might be limited. Using HTTP/1.1 and decreased pagination for indexer requests.",
+                        color = LocalAppColors.current.textSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                    )
+                }
                 // Honest all-blocked explanation: only shown once the pool has concluded that
                 // NO node answers at all on this network (see NodePoolManager's
                 // nodeConnectionsBlocked doc) - a plain red "Disconnected" with no reason
@@ -2694,6 +2707,15 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
                 if (latencyMs != null) {
                     SettingsDivider()
                     ConnectionStatusRow(stringResource(R.string.latency), "$latencyMs ms", valueColor = latencyColor)
+                }
+                // The connected node's place, from the bundled geo database (iOS).
+                activeNodes.firstOrNull()?.distanceKm?.let { km ->
+                    SettingsDivider()
+                    ConnectionStatusRow("Distance", formatNodeDistance(km, spaced = true))
+                }
+                activeNodes.firstOrNull()?.countryCode?.let { country ->
+                    SettingsDivider()
+                    ConnectionStatusRow("Country", country)
                 }
                 SettingsDivider()
                 ConnectionStatusRow(stringResource(R.string.indexer), indexerHost, monospaced = true)
@@ -2839,6 +2861,11 @@ fun ConnectionStatusScreen(onBack: () -> Unit, viewModel: ConnectionViewModel = 
 /** A label/value row of iOS ConnectionStatusDetailView's first section: the label 17pt, the value
  *  trailing in the secondary colour (or [valueColor]) - a host name in monospaced caption, as iOS
  *  writes the node and indexer - and, for Status, a 10pt dot in [dot]'s colour before it. */
+/** A node's distance as iOS writes it: "42 km" under 100, else "1.2k km" (the node rows drop the
+ *  space below 100: "42km"). */
+internal fun formatNodeDistance(km: Double, spaced: Boolean): String =
+    if (km < 100) "${km.toInt()}${if (spaced) " " else ""}km" else "%.1fk km".format(java.util.Locale.US, km / 1000)
+
 /** An empty node list's one line, as iOS writes it: secondary and italic. */
 @Composable
 private fun NodeListEmptyRow(text: String) {
@@ -3478,6 +3505,14 @@ fun ActiveNodeRow(node: NodeInfo) {
                 Text(node.type, color = Color(0xFF2196F3), fontSize = 10.sp)
                 Spacer(Modifier.width(8.dp))
                 Text(node.latency, color = LocalAppColors.current.warning, fontSize = 10.sp)
+                node.distanceKm?.let {
+                    Spacer(Modifier.width(8.dp))
+                    Text(formatNodeDistance(it, spaced = false), color = LocalAppColors.current.textSecondary, fontSize = 10.sp)
+                }
+                node.countryCode?.let {
+                    Spacer(Modifier.width(8.dp))
+                    Text(it, color = LocalAppColors.current.textSecondary, fontSize = 10.sp)
+                }
             }
             Text("DAA: ${node.daaScore}", color = LocalAppColors.current.textSecondary, fontSize = 10.sp)
         }
@@ -3504,6 +3539,14 @@ fun AllNodeRow(node: NodeInfo) {
         }
         Spacer(Modifier.width(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
+            node.countryCode?.let {
+                Text(it, color = LocalAppColors.current.textSecondary, fontSize = 10.sp)
+                Spacer(Modifier.width(8.dp))
+            }
+            node.distanceKm?.let {
+                Text(formatNodeDistance(it, spaced = false), color = LocalAppColors.current.textSecondary, fontSize = 10.sp)
+                Spacer(Modifier.width(8.dp))
+            }
             Text(node.latency, color = LocalAppColors.current.warning, fontSize = 10.sp)
             Spacer(Modifier.width(8.dp))
             Box(modifier = Modifier.background(Color(0x33FF3B30), RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 2.dp)) {

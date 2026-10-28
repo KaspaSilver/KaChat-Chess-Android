@@ -50,8 +50,9 @@ internal fun deriveConnectionStatus(
     }
 }
 
-internal fun dotColorHexFor(status: ConnectionStatus): Long = when (status) {
-    ConnectionStatus.CONNECTED -> 0xFF4CD964
+internal fun dotColorHexFor(status: ConnectionStatus, dpiSuspected: Boolean = false): Long = when (status) {
+    // Connected with DPI suspected (indexer requests over HTTP/1.1): a darker green, as iOS.
+    ConnectionStatus.CONNECTED -> if (dpiSuspected) 0xFF008000 else 0xFF4CD964
     ConnectionStatus.DEGRADED -> 0xFFF39C12
     ConnectionStatus.DISCONNECTED -> 0xFFFF3B30
 }
@@ -62,7 +63,11 @@ data class NodeInfo(
     val latency: String,
     val daaScore: String,
     val status: String, // Active, Quarantined, Suspect, Candidate
-    val color: Long // Hex color for status
+    val color: Long, // Hex color for status
+    /** From the bundled geo database (iOS NodeProfiler): null when the address is not in it. */
+    val countryCode: String? = null,
+    /** From this device's place, estimated from the nearest nodes (iOS NodeProfiler). */
+    val distanceKm: Double? = null,
 )
 
 @HiltViewModel
@@ -70,7 +75,11 @@ class ConnectionViewModel @Inject constructor(
     private val settings: AppSettingsRepository,
     private val nodePoolManager: com.kachat.app.services.NodePoolManager,
     private val kachatNamesRegistry: dagger.Lazy<com.kachat.app.services.kachatnames.KachatNamesRegistry>,
+    dpiGuard: com.kachat.app.services.IndexerDpiGuard,
 ) : ViewModel() {
+
+    /** The Message Indexer is being reached over HTTP/1.1 because DPI is suspected (iOS). */
+    val dpiSuspected: StateFlow<Boolean> = dpiGuard.dpiSuspected
 
     /** Where .kachat names are read from right now, for Connection Settings > Domains: the
      *  Message Indexer's URL, the chain, or null until the registry has picked (iOS 1d23002). */
@@ -137,7 +146,7 @@ class ConnectionViewModel @Inject constructor(
 
     /** Connection dot color: green under 300ms, orange at 300ms+, red only after sustained disconnection. */
     val dotColorHex: StateFlow<Long> = statusFlow()
-        .map(::dotColorHexFor)
+        .combine(dpiSuspected) { status, dpi -> dotColorHexFor(status, dpi) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), dotColorHexFor(initialGracedStatus()))
 
     /** Real "Xs/Xm/Xh ago" string, ticking every second, sourced from the pool's most recent successful probe. */

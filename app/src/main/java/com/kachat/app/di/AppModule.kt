@@ -78,7 +78,7 @@ object AppModule {
      */
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(dpiGuard: com.kachat.app.services.IndexerDpiGuard): OkHttpClient {
         // Per-request success logging is deliberately absent: the chat sync loop fires a request
         // roughly every 2 seconds, so success lines are pure logcat noise. Two interceptors below:
         //
@@ -94,7 +94,7 @@ object AppModule {
         val verboseLogger = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.BASIC
         }
-        return OkHttpClient.Builder()
+        val base = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
@@ -142,6 +142,9 @@ object AppModule {
                 chain.proceed(request)
             }
             .build()
+        // The Message Indexer's HTTP/2 -> HTTP/1.1 fallback on networks that break HTTP/2 (DPI,
+        // iOS KasiaAPIClient); every other host passes straight through.
+        return dpiGuard.wrap(base)
     }
 
     private const val API_LOG_TAG = "ApiLog"

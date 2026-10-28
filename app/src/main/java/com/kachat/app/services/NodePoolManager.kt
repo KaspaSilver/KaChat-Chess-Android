@@ -206,6 +206,9 @@ class NodePoolManager @Inject constructor(
 
     private var probeJob: Job? = null
 
+    /** Where the nodes are (iOS NodeProfiler's LocalGeoIPDatabase): the bundled database only. */
+    private val geoIp = com.kachat.app.services.grpc.GeoIpDatabase(context).also { it.preload() }
+
     init {
         registry.resetTo(seeds, "Seed")
         scope.launch {
@@ -677,8 +680,27 @@ class NodePoolManager @Inject constructor(
     }
 
     private fun publish() {
-        val allInfo = registry.snapshot()
-            .map(::toNodeInfo)
+        val records = registry.snapshot()
+        val places = records.associate { it.address to geoIp.lookup(com.kachat.app.services.grpc.GeoIpDatabase.hostOf(it.address)) }
+        // This device's own place is inferred from the three fastest active nodes the database
+        // knows, never asked of a lookup service (iOS inferClientGeoFromPoolHints).
+        val nearest = records
+            .filter { registry.statusOf(it) == "Active" && places[it.address] != null && it.lastProbe?.latencyMs != null }
+            .sortedBy { it.lastProbe?.latencyMs }
+            .take(3)
+            .mapNotNull { places[it.address] }
+        val here = if (nearest.isEmpty()) null else
+            nearest.sumOf { it.latitude } / nearest.size to nearest.sumOf { it.longitude } / nearest.size
+        val allInfo = records
+            .map { record ->
+                val place = places[record.address]
+                toNodeInfo(record).copy(
+                    countryCode = place?.countryCode,
+                    distanceKm = if (place != null && here != null) {
+                        com.kachat.app.services.grpc.GeoIpDatabase.haversineDistanceKm(here.first, here.second, place.latitude, place.longitude)
+                    } else null,
+                )
+            }
             .sortedWith(
                 compareByDescending<NodeInfo> { it.status == "Active" }
                     .thenBy { it.latency.removeSuffix("ms").toIntOrNull() ?: Int.MAX_VALUE }
