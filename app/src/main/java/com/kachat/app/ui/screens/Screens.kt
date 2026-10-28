@@ -3425,14 +3425,14 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
         val S = com.kachat.app.repository.AppSettingsRepository
         val (title, current, default) = when (endpoint) {
             ConnectionViewModel.Endpoint.MESSAGE_INDEXER ->
-                Triple("Indexer URL", indexerUrl, if (onMainnetSettings) S.DEFAULT_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
-            // The network's default: the testnet-10 indexer on testnet (iOS 5463ab7).
+                Triple("Indexer URL", indexerUrl, if (onMainnetSettings) S.DEFAULT_INDEXER_URL else "")
+            // The network's default: none on testnet, which has no KaChat indexer.
             ConnectionViewModel.Endpoint.KAPOST_INDEXER ->
-                Triple("KaPost Indexer URL", kapostIndexerUrl, if (onMainnetSettings) S.DEFAULT_KAPOST_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+                Triple("KaPost Indexer URL", kapostIndexerUrl, if (onMainnetSettings) S.DEFAULT_KAPOST_INDEXER_URL else "")
             ConnectionViewModel.Endpoint.PUBLIC_CHATS_INDEXER ->
-                Triple("Public Chats Indexer URL", broadcastIndexerUrl, if (onMainnetSettings) S.DEFAULT_BROADCAST_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+                Triple("Public Chats Indexer URL", broadcastIndexerUrl, if (onMainnetSettings) S.DEFAULT_BROADCAST_INDEXER_URL else "")
             ConnectionViewModel.Endpoint.PUSH_INDEXER ->
-                Triple("Push Indexer URL", pushIndexerUrl, if (onMainnetSettings) S.DEFAULT_PUSH_INDEXER_URL else S.DEFAULT_TESTNET_INDEXER_URL)
+                Triple("Push Indexer URL", pushIndexerUrl, if (onMainnetSettings) S.DEFAULT_PUSH_INDEXER_URL else "")
             ConnectionViewModel.Endpoint.TRANSLATION ->
                 Triple("Translation Service URL", translationServiceUrl, S.DEFAULT_TRANSLATION_SERVICE_URL)
             ConnectionViewModel.Endpoint.KASPA_REST ->
@@ -3461,6 +3461,8 @@ fun ConnectionSettingsScreen(onBack: () -> Unit, viewModel: ConnectionViewModel 
                     Text(
                         // iOS's words for a plain-http URL.
                         if (rejected) "Use https. Unencrypted connections are not supported."
+                        // Testnet has no default indexer (iOS c2d4bc1).
+                        else if (default.isEmpty()) "No testnet indexer yet"
                         else "Leave blank to use $default",
                         color = if (rejected) Color(0xFFE57373) else LocalAppColors.current.textSecondary,
                         style = MaterialTheme.typography.bodySmall

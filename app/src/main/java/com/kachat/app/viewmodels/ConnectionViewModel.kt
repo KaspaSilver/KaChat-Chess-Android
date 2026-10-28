@@ -227,7 +227,7 @@ class ConnectionViewModel @Inject constructor(
         viewModelScope.launch {
             when (endpoint) {
                 Endpoint.MESSAGE_INDEXER -> settings.setIndexerUrl(normalized)
-                // Blank on testnet is the testnet-10 indexer, never the mainnet default (iOS 5463ab7).
+                // Blank on testnet is no indexer, never the mainnet default.
                 Endpoint.KAPOST_INDEXER -> settings.setKapostIndexerUrl(
                     normalized.ifBlank { if (onTestnetSettings) "" else AppSettingsRepository.DEFAULT_KAPOST_INDEXER_URL }
                 )
@@ -239,7 +239,7 @@ class ConnectionViewModel @Inject constructor(
                 Endpoint.KASPA_REST -> settings.setKaspaRestUrl(normalized)
             }
             val effective = normalized.ifBlank {
-                if (onTestnetSettings) AppSettingsRepository.DEFAULT_TESTNET_INDEXER_URL else AppSettingsRepository.DEFAULT_INDEXER_URL
+                if (onTestnetSettings) "" else AppSettingsRepository.DEFAULT_INDEXER_URL
             }
             if (endpoint == Endpoint.MESSAGE_INDEXER && effective != current &&
                 com.kachat.app.services.kachatnames.KachatNamesService.isLaunched
