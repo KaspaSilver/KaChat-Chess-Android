@@ -31,9 +31,9 @@ Open the project in Android Studio, or from the command line:
 ./gradlew :app:assembleGithubDebug
 ```
 
-One app module, `com.kachat.chess`, minSdk 26. Two distribution flavours as in KaChat:
-`play` (the Play Store bundle, `bundlePlayRelease`) and `github` (the handed-out APK,
-`assembleGithubRelease`). Release signing reads a gitignored `keystore.properties`.
+One app module, `kaplay.kachat.app` (`kaplay.kachat.app.debug` for debug builds), minSdk 26. Two
+distribution flavours as in KaChat: `play` (the Play Store bundle, `bundlePlayRelease`) and `github`
+(the handed-out APK, `assembleGithubRelease`). Release signing reads a gitignored `keystore.properties`.
 
 The version and build number live in `app/build.gradle.kts` (`versionName`, `versionCode`,
 `kachatBuildNumber`).

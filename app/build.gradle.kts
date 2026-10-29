@@ -76,7 +76,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.kachat.chess"
+        // KaPlay's own package, the one registered for it in Play Console (the iPhone chess app's
+        // bundle is com.kachat.chess). It installs beside KaChat and never shares its storage or
+        // keystore entries. The Kotlin namespace stays com.kachat.app so the code still lines up
+        // with KaChat-Android's for porting fixes across.
+        applicationId = "kaplay.kachat.app"
         minSdk = 26
         targetSdk = 36
         // ---- Version ----
