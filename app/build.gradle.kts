@@ -106,26 +106,28 @@ android {
     }
 
     signingConfigs {
-        if (keystorePropertiesFile.exists()) {
+        // The release key is optional too: KaPlay's keystore.properties holds only the Play upload
+        // key, and its GitHub APK stays signed as it always has been.
+        if (keystoreProperties.getProperty("storeFile") != null) {
             create("release") {
                 storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
             }
-            // The Play upload key, which is NOT the key the GitHub APK is signed with: Play
-            // knows the app by the certificate of its first upload, and an APK already installed
-            // from GitHub can only be updated by something signed the same way as itself. So the
-            // play flavour's release build is signed with this one (see androidComponents below)
-            // and everything else keeps the key above. Optional: a checkout without it still
-            // builds the GitHub APK.
-            if (keystoreProperties.getProperty("uploadStoreFile") != null) {
-                create("upload") {
-                    storeFile = rootProject.file(keystoreProperties.getProperty("uploadStoreFile"))
-                    storePassword = keystoreProperties.getProperty("uploadStorePassword")
-                    keyAlias = keystoreProperties.getProperty("uploadKeyAlias")
-                    keyPassword = keystoreProperties.getProperty("uploadKeyPassword")
-                }
+        }
+        // The Play upload key, which is NOT the key the GitHub APK is signed with: Play
+        // knows the app by the certificate of its first upload, and an APK already installed
+        // from GitHub can only be updated by something signed the same way as itself. So the
+        // play flavour's release build is signed with this one (see androidComponents below)
+        // and everything else keeps the key above. Optional: a checkout without it still
+        // builds the GitHub APK.
+        if (keystoreProperties.getProperty("uploadStoreFile") != null) {
+            create("upload") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("uploadStoreFile"))
+                storePassword = keystoreProperties.getProperty("uploadStorePassword")
+                keyAlias = keystoreProperties.getProperty("uploadKeyAlias")
+                keyPassword = keystoreProperties.getProperty("uploadKeyPassword")
             }
         }
     }
@@ -137,10 +139,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
-            if (keystorePropertiesFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
         debug {
             isDebuggable = true
