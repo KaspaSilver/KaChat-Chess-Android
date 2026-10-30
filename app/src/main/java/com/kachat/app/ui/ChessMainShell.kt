@@ -53,9 +53,9 @@ val CHESS_DOCK_TABS = listOf(Screen.Play, Screen.Leaderboard, Screen.Wallet, Scr
 
 /**
  * Screens pushed inside a tab that keep the dock, as iOS's tab bar stays under a NavigationStack's
- * pushed pages: choosing and watching games, and the Settings pages. The game itself takes the
- * whole screen, and so do the sheets iOS presents over the tab bar (the seed phrase, a player's
- * card, the licences).
+ * pushed pages: choosing and watching games, and the Settings pages. A game being played takes the
+ * whole screen (see [ChessGameDock]), and so do the sheets iOS presents over the tab bar (the seed
+ * phrase, a player's card, the licences).
  */
 private val CHESS_DOCKED_ROUTES = CHESS_DOCK_TABS.map { it.route }.toSet() + setOf(
     "chess_mode/{mode}",
@@ -65,6 +65,12 @@ private val CHESS_DOCKED_ROUTES = CHESS_DOCK_TABS.map { it.route }.toSet() + set
     "chess_settings/{page}",
     "connection_settings",
     "kaspa_explorer_settings",
+)
+
+/** The game boards: docked unless the player is locked in ([ChessGameDock]). */
+private val CHESS_GAME_ROUTES = setOf(
+    "chess_tournament_game/{tournamentId}/{gameId}",
+    "chess_bot_game/{level}/{side}",
 )
 
 /**
@@ -79,9 +85,10 @@ fun ChessMainShell(walletViewModel: WalletViewModel = hiltViewModel()) {
     val backStack by navController.currentBackStack.collectAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    // A bot game keeps the dock away only while it is on, as iOS hides the tab bar then.
+    // A game keeps the dock away only while its player is in it, as iOS hides the tab bar then:
+    // someone watching, or a game that is over, keeps it.
     val showDock = currentRoute == null || currentRoute in CHESS_DOCKED_ROUTES ||
-        (currentRoute == "chess_bot_game/{level}/{side}" && !ChessBotGameDock.lockedIn)
+        (currentRoute in CHESS_GAME_ROUTES && !ChessGameDock.lockedIn)
 
     // What KaChat's dock did on appearing (iOS ChessMainTabView's onAppear): a hold left from
     // onboarding is lifted, or nothing would start. There is no welcome guide to lift it.
@@ -173,11 +180,13 @@ private fun androidx.navigation.NavGraphBuilder.chessGraph(
         }
     }
     composable("chess_tournament_game/{tournamentId}/{gameId}") { entry ->
-        ChessTournamentGameScreen(
-            entry.arguments?.getString("tournamentId").orEmpty(),
-            entry.arguments?.getString("gameId").orEmpty(),
-            navController,
-        )
+        CompositionLocalProvider(LocalDockInset provides if (ChessGameDock.lockedIn) 0.dp else dockInset) {
+            ChessTournamentGameScreen(
+                entry.arguments?.getString("tournamentId").orEmpty(),
+                entry.arguments?.getString("gameId").orEmpty(),
+                navController,
+            )
+        }
     }
     // Play > Bots: the ladder, one bot, a game against it (iOS ChessBotsView, c3c04a1).
     composable("chess_bots") {
@@ -189,7 +198,7 @@ private fun androidx.navigation.NavGraphBuilder.chessGraph(
         }
     }
     composable("chess_bot_game/{level}/{side}") { entry ->
-        CompositionLocalProvider(LocalDockInset provides if (ChessBotGameDock.lockedIn) 0.dp else dockInset) {
+        CompositionLocalProvider(LocalDockInset provides if (ChessGameDock.lockedIn) 0.dp else dockInset) {
             ChessBotGameScreen(
                 entry.arguments?.getString("level")?.toIntOrNull() ?: 1,
                 entry.arguments?.getString("side").orEmpty(),
@@ -356,7 +365,9 @@ private fun ChessDock(selectedIndex: Int, haze: HazeState, onSelect: (Screen) ->
                                 painter = screen.tabIconPainter(),
                                 contentDescription = screen.label,
                                 tint = tint,
-                                modifier = screen.tabIconModifier(24.dp),
+                                // iOS's tab glyphs are about 24pt (the gear, measured on the
+                                // iPhone); Material's fill about 20 of a 24 box, hence 28.
+                                modifier = screen.tabIconModifier(28.dp),
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(

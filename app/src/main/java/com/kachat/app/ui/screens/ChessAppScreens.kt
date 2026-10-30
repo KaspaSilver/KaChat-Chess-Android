@@ -110,7 +110,9 @@ fun ChessSettingsScreen(navController: NavController, walletViewModel: WalletVie
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = LocalDockInset.current + 24.dp),
+                // The first card 67 under the bar's centre, as on the iPhone (insetGrouped's top
+                // margin under an inline title).
+                .padding(top = 16.dp, bottom = LocalDockInset.current + 24.dp),
         ) {
             SettingsFormSection(title = null, first = true) {
                 SettingsNavigationItem(stringResource(R.string.customization), Icons.Outlined.Brush, onClick = { navController.navigate("chess_settings/customization") })

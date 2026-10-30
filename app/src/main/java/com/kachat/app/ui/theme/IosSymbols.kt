@@ -93,11 +93,18 @@ object IosSymbols {
     }
 
     /**
-     * "checkerboard.rectangle", the Play tab's symbol: a rounded rectangle outline with a
-     * checkerboard inside it - one even-odd path, so the ring and the dark squares fill and
-     * everything between them stays clear.
+     * "checkerboard.rectangle" as the iPhone's tab bar draws it (filled): a solid rounded
+     * rectangle, 2pt of rim, with a 5 x 4 checkerboard cut into it - one even-odd path, so the
+     * dark squares are holes. Traced from the iPhone at 26.7 x 20.7pt; 22 x 17 of the 24 box here.
      */
     val CheckerboardRectangle: ImageVector by lazy {
+        val left = 2.65f; val top = 5.15f; val cell = 3.74f; val row = 3.425f
+        val holes = buildString {
+            for (r in 0..3) for (c in 0..4) {
+                if ((r + c) % 2 != 0) continue
+                append("M${left + c * cell},${top + r * row}h${cell}v${row}h${-cell}z")
+            }
+        }
         ImageVector.Builder(
             name = "CheckerboardRectangle",
             defaultWidth = 24.dp,
@@ -106,14 +113,7 @@ object IosSymbols {
             viewportHeight = 24f,
         ).addPath(
             pathData = addPathNodes(
-                "M5,4.5H19a3,3 0 0,1 3,3V16.5a3,3 0 0,1 -3,3H5a3,3 0 0,1 -3,-3V7.5a3,3 0 0,1 3,-3z" +
-                    "M5.2,6.1H18.8a1.6,1.6 0 0,1 1.6,1.6V16.3a1.6,1.6 0 0,1 -1.6,1.6H5.2a1.6,1.6 0 0,1 -1.6,-1.6V7.7a1.6,1.6 0 0,1 1.6,-1.6z" +
-                    "M4.8,7.3h3.6v3.133h-3.6z" +
-                    "M12,7.3h3.6v3.133h-3.6z" +
-                    "M8.4,10.433h3.6v3.134h-3.6z" +
-                    "M15.6,10.433h3.6v3.134h-3.6z" +
-                    "M4.8,13.567h3.6v3.133h-3.6z" +
-                    "M12,13.567h3.6v3.133h-3.6z"
+                "M4,3.5H20a3,3 0 0,1 3,3V17.5a3,3 0 0,1 -3,3H4a3,3 0 0,1 -3,-3V6.5a3,3 0 0,1 3,-3z" + holes
             ),
             pathFillType = PathFillType.EvenOdd,
             fill = SolidColor(Color.Black),

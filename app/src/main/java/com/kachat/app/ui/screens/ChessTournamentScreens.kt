@@ -79,10 +79,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -213,14 +215,16 @@ private fun ChessErrorToast(service: ChessTournamentService) {
     IosToastWhile(error, IosToastStyle.Error)
 }
 
+/** An insetGrouped list's section header as iOS 26 draws it: title case, 17pt semibold in the
+ *  secondary colour, lined up with the footer text (measured on the iPhone). */
 @Composable
 private fun ChessSectionHeader(text: String) {
     Text(
-        text.uppercase(),
+        text,
         color = LocalAppColors.current.textSecondary,
-        fontSize = 12.sp,
+        fontSize = 17.sp,
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 6.dp),
+        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 18.dp, bottom = 6.dp),
     )
 }
 
@@ -230,7 +234,8 @@ private fun ChessCard(content: @Composable () -> Unit) {
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            // iOS 26's insetGrouped rows: 26 round (measured on the iPhone).
+            .clip(RoundedCornerShape(26.dp))
             .background(LocalAppColors.current.surface),
     ) { content() }
 }
@@ -315,9 +320,9 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
         containerColor = colors.background,
         // Runs on under the dock, as iOS's content runs on under its tab bar.
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
-        topBar = {
-            MainPageHeader(title = mode.label, onBack = onBack)
-        },
+        // iOS's pushed pages carry the back button and the balance only: the title is inline and
+        // the balance takes its place, and the connection dot is on the dock's root screens.
+        topBar = { ChessHomeBar(onBack = onBack, showConnectionDot = false) },
     ) { padding ->
         // The same tab bar and swipe the Chats screen uses, so a tab is a tab wherever it
         // appears in the app (iOS 353f040).
@@ -327,23 +332,28 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
         val pagerState = androidx.compose.foundation.pager.rememberPagerState { tabs.size }
         val tabScope = rememberCoroutineScope()
         Column(Modifier.fillMaxSize().padding(padding)) {
-            androidx.compose.material3.TabRow(
-                selectedTabIndex = pagerState.currentPage,
-                containerColor = colors.background,
-                contentColor = KaspaTeal,
-            ) {
+            // iOS's tab buttons: subheadline bold 12 under the bar, 8 above a 2.5 underline in
+            // the accent, then a divider across the screen.
+            Row(Modifier.fillMaxWidth()) {
                 tabs.forEachIndexed { index, label ->
-                    // The content slot, not `text =`: that one reserves 16dp of padding on each
-                    // side of the label, and four tabs on a phone leave about 90dp each - which
-                    // is what cut "Leaderboard" off mid-word.
-                    androidx.compose.material3.Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = { tabScope.launch { pagerState.animateScrollToPage(index) } },
+                    val selected = pagerState.currentPage == index
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clickable(
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                indication = null,
+                            ) { tabScope.launch { pagerState.animateScrollToPage(index) } },
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        ChessTabLabel(label = label, selected = pagerState.currentPage == index)
+                        Spacer(Modifier.height(12.dp))
+                        ChessTabLabel(label = label, selected = selected)
+                        Spacer(Modifier.height(8.dp))
+                        Box(Modifier.fillMaxWidth().height(2.5.dp).background(if (selected) KaspaTeal else Color.Transparent))
                     }
                 }
             }
+            HorizontalDivider(color = colors.divider, thickness = 0.5.dp)
             androidx.compose.foundation.pager.HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
             when (page) {
                 1 -> { ChessActiveGames(mode, navController); return@HorizontalPager }
@@ -387,8 +397,8 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
                 Text(
                     if (duel) "Join and you are paired with the next person who joins. When a room fills, the game starts and the next room opens. Five minutes a side; every move is a Kaspa transaction (about 0.0017 ${KaspaUnit.symbol} each). Games here count on the leaderboard."
                     else "There is always a public room waiting for players. When it fills, it starts and the next one opens. Eight players, single elimination, five minutes a side. Every move is a Kaspa transaction (about 0.0017 ${KaspaUnit.symbol} each).",
-                    color = colors.textSecondary, fontSize = 12.sp,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                    color = colors.textSecondary, fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 6.dp),
                 )
 
                 ChessSectionHeader("Private")
@@ -401,8 +411,10 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
                             else -> "${t.seatsLeft} seat${if (t.seatsLeft == 1) "" else "s"} left"
                         }
                         TournamentRow(t, action) { open(t.id) }
+                        ChessRowDivider()
                     }
                     ChessActionRow(Icons.Default.Key, "Join with a code") { privateCode = ""; showJoinPrivate = true }
+                    ChessRowDivider()
                     ChessActionRow(Icons.Default.AddCircleOutline, if (duel) "Create a private 1v1" else "Create a private tournament") {
                         newName = ""; creatorCode = ""; showCreate = true
                     }
@@ -410,8 +422,8 @@ fun ChessTournamentsScreen(mode: ChessLobbyMode, navController: NavController, o
                 Text(
                     if (duel) "Play a friend: create a 1v1, share its code. Private 1v1s count on the leaderboard too."
                     else "A private tournament is for friends: the creator shares its eight-character code. Creating one needs the creator code.",
-                    color = colors.textSecondary, fontSize = 12.sp,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                    color = colors.textSecondary, fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 6.dp),
                 )
 
                 // Games in play and finished ones have their own tabs now.
@@ -584,25 +596,25 @@ private fun ChessActiveGames(mode: ChessLobbyMode, navController: NavController)
             // One row per game.
             ChessSectionHeader("Live now")
             ChessCard {
-                live.forEach { room ->
-                    room.games.values.firstOrNull()?.let { liveGameRow(it, room) }
-                }
+                live.mapNotNull { room -> room.games.values.firstOrNull()?.let { it to room } }
+                    .let { games -> ChessRows(games, start = 54.dp) { (game, room) -> liveGameRow(game, room) } }
             }
         } else {
             // A section per tournament, a row per game in play, and the bracket a tap away.
             live.forEach { tournament ->
                 ChessSectionHeader(tournament.name)
                 ChessCard {
-                    tournament.games.values.filter { !it.isDecided(now) }.sortedWith(compareBy({ it.round }, { it.id }))
-                        .forEach { liveGameRow(it, tournament) }
+                    val playing = tournament.games.values.filter { !it.isDecided(now) }.sortedWith(compareBy({ it.round }, { it.id }))
+                    ChessRows(playing, start = 54.dp) { liveGameRow(it, tournament) }
+                    if (playing.isNotEmpty()) ChessRowDivider(start = 54.dp)
                     TournamentRow(tournament, "Bracket") { navController.navigate("chess_tournament/${tournament.id}") }
                 }
             }
         }
         Text(
             "Watching is free - nothing is sent. Only the two players can move or chat.",
-            color = colors.textSecondary, fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+            color = colors.textSecondary, fontSize = 13.sp,
+            modifier = Modifier.padding(horizontal = 32.dp, vertical = 6.dp),
         )
     }
 }
@@ -666,14 +678,16 @@ private fun ChessFinishedGames(mode: ChessLobbyMode, navController: NavControlle
             // A finished 1v1 is one game: tap it and the board is there as it ended.
             ChessSectionHeader("Finished 1v1 games")
             ChessCard {
-                done.forEach { room -> room.games.values.firstOrNull()?.let { finishedGameRow(it, room) } }
+                ChessRows(done.mapNotNull { room -> room.games.values.firstOrNull()?.let { it to room } }, start = 54.dp) { (game, room) ->
+                    finishedGameRow(game, room)
+                }
             }
         } else {
             // Finished tournaments as a list; each opens its bracket - the champion at the end of
             // it, every game a tap away to see the board as it was left (iOS 4317bcc).
             ChessSectionHeader("Finished tournaments")
             ChessCard {
-                done.forEach { tournament ->
+                ChessRows(done, start = 54.dp) { tournament ->
                     Row(
                         Modifier.fillMaxWidth()
                             .clickable { navController.navigate("chess_tournament/${tournament.id}") }
@@ -772,11 +786,32 @@ private fun ChessPill(text: String, filled: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun ChessActionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, onClick: () -> Unit) {
+    // iOS's Label in a list row: the 17pt body text in the accent colour, after its icon.
     Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = KaspaTeal, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(12.dp))
-        Text(title, color = KaspaTeal, fontSize = 15.sp)
+        Text(title, color = KaspaTeal, fontSize = 17.sp)
     }
+}
+
+/** [items] as a card's rows, a [ChessRowDivider] between each two. */
+@Composable
+private fun <T> ChessRows(items: List<T>, start: androidx.compose.ui.unit.Dp, row: @Composable (T) -> Unit) {
+    items.forEachIndexed { index, item ->
+        if (index > 0) ChessRowDivider(start = start)
+        row(item)
+    }
+}
+
+/** The separator between two rows of a card, as iOS's list draws it: a hairline that starts where
+ *  the rows' text does (after the icon) and stops short of the card's trailing edge. */
+@Composable
+private fun ChessRowDivider(start: androidx.compose.ui.unit.Dp = 50.dp) {
+    HorizontalDivider(
+        color = LocalAppColors.current.divider,
+        thickness = 0.5.dp,
+        modifier = Modifier.padding(start = start, end = 16.dp),
+    )
 }
 
 @Composable
@@ -818,7 +853,8 @@ private fun TournamentRow(tournament: ChessTournament, action: String, onClick: 
  */
 @Composable
 private fun ChessTabLabel(label: String, selected: Boolean) {
-    val maxSize = 13.sp
+    // subheadline, shrinking to 0.8 of it before it would cut a word (minimumScaleFactor).
+    val maxSize = 15.sp
     val minSize = maxSize * 0.8f
     var fontSize by remember(label) { mutableStateOf(maxSize) }
     Text(
@@ -1131,7 +1167,8 @@ internal fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavContro
         }
     }
     val periodLabel = stringResource(R.string.chess_leaderboard_period)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp + LocalDockInset.current)) {
+    // The list's first section starts well clear of the tabs (48 between them on the iPhone).
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 44.dp, bottom = 8.dp + LocalDockInset.current)) {
         item {
             // iOS: a segmented Picker on its own row at the top, its note as the section footer.
             KaPostsSegmentedPicker(
@@ -1151,65 +1188,98 @@ internal fun ChessLeaderboardRows(mode: ChessLobbyMode, navController: NavContro
             )
             Text(
                 periodNote,
-                color = colors.textSecondary, fontSize = 12.sp,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(top = 6.dp, bottom = 10.dp),
+                color = colors.textSecondary, fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 32.dp).padding(top = 6.dp, bottom = 10.dp),
             )
         }
         item {
-            // What this board counts, in its own words (iOS 1d32335).
-            Text(
-                if (duel) "Games won and lost - 1v1s and tournament games alike" else "Tournaments won and lost",
-                color = colors.textSecondary, fontSize = 12.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-            )
+            // What this board counts, in its own words (iOS 1d32335) - the rows' section header.
+            ChessSectionHeader(if (duel) "Games won and lost - 1v1s and tournament games alike" else "Tournaments won and lost")
         }
         if (rows.isEmpty()) {
             item {
-                Text(
-                    emptyText,
-                    color = colors.textSecondary, fontSize = 14.sp, modifier = Modifier.padding(20.dp),
-                )
+                ChessCard {
+                    Text(
+                        emptyText,
+                        color = colors.textSecondary, fontSize = 15.sp, modifier = Modifier.padding(16.dp),
+                    )
+                }
             }
         }
+        // iOS's insetGrouped section: one card, 26 round, its rows split by hairlines, your own
+        // row tinted with the accent.
         itemsIndexed(rows, key = { _, row -> row.address }) { index, row ->
-            Row(
+            val corner = 26.dp
+            val shape = RoundedCornerShape(
+                topStart = if (index == 0) corner else 0.dp, topEnd = if (index == 0) corner else 0.dp,
+                bottomStart = if (index == rows.lastIndex) corner else 0.dp, bottomEnd = if (index == rows.lastIndex) corner else 0.dp,
+            )
+            val isMe = row.address == me
+            Column(
                 Modifier
+                    .padding(horizontal = 16.dp)
                     .fillMaxWidth()
-                    // Tap anyone for their card (ChessPlayerScreen).
-                    .then(
-                        if (navController == null) Modifier else Modifier.clickable {
-                            navController.navigate("chess_player/${row.address}")
-                        }
-                    )
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .clip(shape)
+                    .background(if (isMe) KaspaTeal.copy(alpha = 0.12f).compositeOver(colors.surface) else colors.surface),
             ) {
-                Text("${index + 1}", color = colors.textSecondary, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(28.dp))
-                ChessAvatar(row.address, contacts)
-                Spacer(Modifier.width(12.dp))
-                // The numbers keep their full width; a long name gives way, not the score.
-                Text(
-                    chessName(row.address, contacts, knsNames), color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Spacer(Modifier.weight(1f).widthIn(min = 8.dp))
-                if (duel) {
-                    Text("${row.wins} W", color = colors.success, fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace, maxLines = 1)
-                    Spacer(Modifier.width(10.dp))
-                    Text("${row.losses} L", color = colors.danger, fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace, maxLines = 1)
-                } else {
-                    // Whole tournaments only: won (champion) and lost (knocked out). A game won
-                    // inside one is not a score (iOS 7049e70).
-                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFFFFCC00), modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("${row.tournamentsWon}", color = Color(0xFFFFCC00), fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace)
-                    Spacer(Modifier.width(10.dp))
-                    Text("${row.tournamentsLost} L", color = colors.danger, fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace)
+                if (index > 0) ChessRowDivider(start = 34.dp)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        // Tap anyone for their card (ChessPlayerScreen).
+                        .then(
+                            if (navController == null) Modifier else Modifier.clickable {
+                                navController.navigate("chess_player/${row.address}")
+                            }
+                        )
+                        // A 36 avatar in a row 66 tall (measured on the iPhone).
+                        .padding(horizontal = 16.dp, vertical = 15.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // subheadline (15pt) throughout, the figures in tabular digits.
+                    val digits = androidx.compose.ui.text.TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum")
+                    Text(
+                        "${index + 1}", color = colors.textSecondary, style = digits,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.width(28.dp),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    ChessAvatar(row.address, contacts)
+                    Spacer(Modifier.width(12.dp))
+                    // The numbers keep their full width; a long name gives way, not the score -
+                    // cut in the middle, as iOS's .truncationMode(.middle).
+                    Text(
+                        middleEllipsis(chessName(row.address, contacts, knsNames), 20),
+                        color = colors.textPrimary, fontSize = 15.sp,
+                        fontWeight = if (isMe) FontWeight.Bold else FontWeight.SemiBold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    if (duel) {
+                        Text("${row.wins} W", color = colors.success, style = digits, maxLines = 1)
+                        Spacer(Modifier.width(10.dp))
+                        Text("${row.losses} L", color = colors.danger, style = digits, maxLines = 1)
+                    } else {
+                        // Whole tournaments only: won (champion) and lost (knocked out). A game won
+                        // inside one is not a score (iOS 7049e70).
+                        Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFFFFCC00), modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("${row.tournamentsWon}", color = Color(0xFFFFCC00), style = digits, maxLines = 1)
+                        Spacer(Modifier.width(10.dp))
+                        Text("${row.tournamentsLost} L", color = colors.danger, style = digits, maxLines = 1)
+                    }
                 }
             }
         }
     }
+}
+
+/** [text] cut in the middle when longer than [max] characters ("castlek…achat"), the way iOS's
+ *  .truncationMode(.middle) keeps both ends of a name in view. */
+private fun middleEllipsis(text: String, max: Int): String {
+    if (text.length <= max) return text
+    val head = (max - 1) / 2
+    return text.take(head) + "…" + text.takeLast(max - 1 - head)
 }
 
 /**
@@ -1308,20 +1378,22 @@ fun ChessHomeScreen(navController: NavController, onBack: (() -> Unit)? = null) 
 }
 
 /**
- * The Play tab's bar, and the Leaderboard tab's. iOS gives these pages an INLINE title whose
- * place the balance takes (the principal item), so what shows is only the connection dot and the
- * balance - no large title under the bar. MainPageHeader's bar row without its title.
+ * The bar of every chess page: the Play and Leaderboard tabs, and everything pushed from Play.
+ * iOS gives these pages an INLINE title whose place the balance takes (the principal item), so
+ * what shows is only the connection dot (or a pushed page's back button) and the balance - no
+ * large title under the bar. MainPageHeader's bar row without its title.
  */
 @Composable
 internal fun ChessHomeBar(
     onBack: (() -> Unit)?,
-    /** iOS puts the connection dot on the dock's root screens only; Bots' pages have none. */
+    /** iOS puts the connection dot on the dock's root screens only; pushed pages have none. */
     showConnectionDot: Boolean = true,
+    modifier: Modifier = Modifier,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalAppColors.current
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(colors.background)
             .statusBarsPadding()
@@ -1710,7 +1782,7 @@ fun ChessTournamentScreen(tournamentId: String, navController: NavController) {
         containerColor = colors.background,
         // Runs on under the dock, as iOS's content runs on under its tab bar.
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
-        topBar = { MainPageHeader(title = tournament?.name ?: "Tournament", onBack = { navController.popBackStack() }) },
+        topBar = { ChessHomeBar(onBack = { navController.popBackStack() }, showConnectionDot = false) },
     ) { padding ->
         if (tournament == null) {
             // Centred in the space above the dock.
@@ -1833,6 +1905,7 @@ fun ChessTournamentScreen(tournamentId: String, navController: NavController) {
                 ChessSectionHeader("Players (${seated.size} of ${tournament.capacity})")
                 ChessCard {
                     seated.forEachIndexed { index, address ->
+                        if (index > 0) ChessRowDivider(start = 64.dp)
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             ChessAvatar(address, contacts)
                             Spacer(Modifier.width(12.dp))
@@ -1840,7 +1913,8 @@ fun ChessTournamentScreen(tournamentId: String, navController: NavController) {
                             Text("Seed ${index + 1}", color = colors.textSecondary, fontSize = 12.sp)
                         }
                     }
-                    repeat(maxOf(0, tournament.capacity - seated.size)) {
+                    repeat(maxOf(0, tournament.capacity - seated.size)) { index ->
+                        if (index > 0 || seated.isNotEmpty()) ChessRowDivider(start = 64.dp)
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(36.dp).border(1.dp, colors.textSecondary.copy(alpha = 0.4f), CircleShape))
                             Spacer(Modifier.width(12.dp))
@@ -1866,7 +1940,7 @@ fun ChessTournamentScreen(tournamentId: String, navController: NavController) {
                     if (games.isEmpty()) continue
                     ChessSectionHeader(if (tournament.isDuel) "Game" else when (round) { 3 -> "Final"; 2 -> "Semifinals"; else -> "Round 1" })
                     ChessCard {
-                        games.forEach { game ->
+                        ChessRows(games, start = 16.dp) { game ->
                             Row(
                                 Modifier.fillMaxWidth().clickable { openGame(game.id) }.padding(horizontal = 16.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -2070,9 +2144,18 @@ private fun ChessGameResultScreen(
         Scaffold(
             containerColor = colors.background,
             topBar = {
-                MainPageHeader(title = if (isDuel) "1v1" else "Tournament") {
-                    // On the header's glass capsule: a 17pt toolbar item, not a Material TextButton.
-                    ToolbarTextButton("Done", onClick = onDone)
+                // iOS's full-screen cover: an inline title, centred, and Done as the confirmation
+                // action - no balance, no connection dot.
+                Box(
+                    Modifier.fillMaxWidth().background(colors.background).statusBarsPadding()
+                        .height(54.dp).padding(horizontal = 16.dp),
+                ) {
+                    Text(
+                        if (isDuel) "1v1" else "Tournament",
+                        color = colors.textPrimary, fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
+                        maxLines = 1, modifier = Modifier.align(Alignment.Center),
+                    )
+                    SheetBarButton("Done", onClick = onDone, emphasized = true, modifier = Modifier.align(Alignment.CenterEnd))
                 }
             },
         ) { padding ->
@@ -2293,18 +2376,22 @@ fun ChessTournamentGameScreen(tournamentId: String, gameId: String, navControlle
     val lockedIn = myColor != null && game?.isOver == false
     var showLeaveWarning by remember { mutableStateOf(false) }
     androidx.activity.compose.BackHandler(enabled = lockedIn) { showLeaveWarning = true }
+    // ...and the dock goes while they are (ChessMainShell); a spectator keeps it.
+    ChessGameDock.Hold(lockedIn)
     Scaffold(
         containerColor = colors.background,
+        // The bars below pad for the system bars themselves; with the dock up, the chat runs on
+        // under it (LocalDockInset), as iOS's content runs on under its tab bar.
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
         topBar = {
-            MainPageHeader(
-                title = title,
+            // iOS: the inline title ([title], for TalkBack) gives way to the balance; back and
+            // Resign while the player is locked in.
+            ChessHomeBar(
                 onBack = { if (lockedIn) showLeaveWarning = true else navController.popBackStack() },
+                showConnectionDot = false,
+                modifier = Modifier.semantics { paneTitle = title },
             ) {
-                if (lockedIn) {
-                    // The header's actions already sit on one piece of glass; this capsule is the
-                    // same 44 shape drawn over it, there for its red text.
-                    SheetBarButton("Resign", onClick = { showResignConfirm = true }, color = colors.danger)
-                }
+                if (lockedIn) SheetBarButton("Resign", onClick = { showResignConfirm = true }, color = colors.danger)
             }
         },
         bottomBar = {
@@ -2461,7 +2548,7 @@ fun ChessTournamentGameScreen(tournamentId: String, gameId: String, navControlle
                 // The chat was live only - the players and whoever watched saw it as it
                 // happened; a finished board is just the board.
                 Column(
-                    Modifier.fillMaxWidth().weight(1f).padding(top = 20.dp),
+                    Modifier.fillMaxWidth().weight(1f).padding(top = 20.dp, bottom = LocalDockInset.current),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(22.dp))
@@ -2481,7 +2568,7 @@ fun ChessTournamentGameScreen(tournamentId: String, gameId: String, navControlle
             LazyColumn(
                 state = chatListState,
                 modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 96.dp),
-                contentPadding = PaddingValues(vertical = 6.dp),
+                contentPadding = PaddingValues(top = 6.dp, bottom = 6.dp + LocalDockInset.current),
             ) {
                 if (lines.isEmpty()) {
                     item {

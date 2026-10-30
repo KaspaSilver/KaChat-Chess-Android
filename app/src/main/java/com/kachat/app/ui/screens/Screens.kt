@@ -1757,7 +1757,9 @@ private fun AddressHistoryRefreshable(isLoading: Boolean, onRefresh: () -> Unit,
             state.endRefresh()
         }
     }
-    Box(Modifier.fillMaxSize().nestedScroll(state.nestedScrollConnection)) {
+    // Clipped: at rest the spinner waits just above the list, and unclipped it drew as a grey
+    // circle over the History / UTXOs tabs.
+    Box(Modifier.fillMaxSize().clipToBounds().nestedScroll(state.nestedScrollConnection)) {
         content()
         PullToRefreshContainer(state = state, modifier = Modifier.align(Alignment.TopCenter))
     }

@@ -88,10 +88,26 @@ class ChessBotsViewModel @Inject constructor(
     }
 }
 
-/** Whether the bot game on screen is still on - the dock stays hidden until it is over, as iOS
- *  hides the tab bar while the player is locked in (ChessMainShell reads it). */
-object ChessBotGameDock {
+/** Whether the game on screen holds its player - a bot game, or a 1v1 or tournament game being
+ *  played rather than watched, still on. The dock stays hidden until it is over, as iOS hides the
+ *  tab bar while the player is locked in (ChessMainShell reads it). */
+object ChessGameDock {
     var lockedIn by mutableStateOf(false)
+        private set
+    /** The screen that last set [lockedIn]: one game screen opening straight over another (the
+     *  next round's board) is set before the old one leaves, and the old one must not clear it. */
+    private var holder: Any? = null
+
+    /** Holds the dock away from the screen calling it while [locked], for as long as it is shown. */
+    @Composable
+    fun Hold(locked: Boolean) {
+        DisposableEffect(locked) {
+            val token = Any()
+            holder = token
+            lockedIn = locked
+            onDispose { if (holder === token) lockedIn = false }
+        }
+    }
 }
 
 /** Play > Bots: the five bots as a ladder, level 1 to 5. Each level opens when the one before it
@@ -285,10 +301,7 @@ private fun ChessBotMatch(bot: ChessBot, playerColor: ChessColor, navController:
     val canPlayerMove = result == null && board.sideToMove == playerColor && !isThinking && outbox.isEmpty() && sendError == null
 
     LaunchedEffect(Unit) { game.start() }
-    DisposableEffect(lockedIn) {
-        ChessBotGameDock.lockedIn = lockedIn
-        onDispose { ChessBotGameDock.lockedIn = false }
-    }
+    ChessGameDock.Hold(lockedIn)
     LaunchedEffect(result) {
         val r = result ?: return@LaunchedEffect
         selectedSquare = null
